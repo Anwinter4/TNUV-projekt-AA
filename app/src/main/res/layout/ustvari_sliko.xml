@@ -159,7 +159,7 @@
 
         <ImageButton
             android:id="@+id/btnPlus"
-            android:src="@drawable/ic_add"
+            android:src="@drawable/ic_add_picture"
             android:layout_height="50dp"
             android:layout_width="0dp"
             android:layout_weight="1"
