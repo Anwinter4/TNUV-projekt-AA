@@ -1,19 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    android:background="#FEF8FA"
+    android:orientation="vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#F5C7D4"
+        app:contentInsetStart="0dp"
+        app:contentInsetLeft="0dp">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:src="@drawable/ic_arrow_back"
+        android:layout_height="50dp"
+        android:layout_width="50dp"
+        android:layout_weight="1"
+        android:backgroundTint="@android:color/transparent"/>
+
+    <EditText
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:padding="5dp"
+        android:hint="Vnesi ime slike..."
+        android:inputType="text"
+        android:id="@+id/vnosno_polje"
+        android:layout_weight="1"
+        android:background="@drawable/greyboarder"
+        />
+    </androidx.appcompat.widget.Toolbar>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:padding="0dp">
+
+        <ImageButton
+            android:id="@+id/btnReverse"
+            android:src="@drawable/ic_reverse"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:backgroundTint="@android:color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/btnRedo"
+            android:src="@drawable/ic_redo"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:backgroundTint="@android:color/transparent"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:fillViewport="true"
+            android:layout_marginEnd="8dp"
+            android:foreground="@drawable/greyboarder">
+
+            <si.uni_lj.fe.tnuv.artly.DrawingView
+                android:id="@+id/canvas"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#FFFFFF" />
+        </androidx.core.widget.NestedScrollView>
+
+
+        <LinearLayout
+            android:layout_width="60dp"
+            android:layout_height="490dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/costumboarder"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/previousArrow"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_arrow_up"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/elementRecyclerView"
+                android:layout_width="60dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="4dp" />
+
+            <ImageButton
+                android:id="@+id/nextArrow"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_arrow_down"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/addElementButton"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:src="@drawable/ic_add"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#F5C7D4">
+
+        <ImageButton
+            android:id="@+id/btnTrash"
+            android:src="@drawable/ic_delete"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/btnEraser"
+            android:src="@drawable/ic_eraser"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent" />
+
+        <ImageButton
+            android:id="@+id/btnPencil"
+            android:src="@drawable/ic_pencil"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/btnPlus"
+            android:src="@drawable/ic_add"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/btnExport"
+            android:src="@drawable/ic_export"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="#F5C7D4">
+
+        <Button
+            android:id="@+id/btnAlbum"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:text="Album"
+            android:textSize="20sp"
+            android:backgroundTint="#C06084"
+            android:layout_marginEnd="16dp" />
+
+        <Button
+            android:id="@+id/btnShrani"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:text="Shrani"
+            android:textSize="20sp"
+            android:backgroundTint="#C06084"/>
+    </LinearLayout>
+
+</LinearLayout>
