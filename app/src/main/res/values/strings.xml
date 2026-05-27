@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ARTLY</string>
+    <string name="gumb_album">Album</string>
+    <string name="gumb_ustvari">Ustvari</string>
 </resources>

@@ -1,4 +1,6 @@
 package si.uni_lj.fe.tnuv.artly;
 
-public class Album {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class Album extends AppCompatActivity {
 }
