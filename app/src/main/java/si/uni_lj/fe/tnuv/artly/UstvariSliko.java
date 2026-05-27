@@ -1,28 +1,26 @@
 package si.uni_lj.fe.tnuv.artly;
 
-import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ustvariSliko extends AppCompatActivity {
+public class UstvariSliko extends AppCompatActivity {
 
     private DrawingView drawingView;
     private RecyclerView elementRecyclerView;
     private ElementAdapter elementAdapter;
-    private ImageButton previousArrow, nextArrow, addElementButton;
+    private ImageButton previousArrow, nextArrow, addUstvariNalepko;
     private List<String> vsiElementi;
 
     @Override
@@ -35,7 +33,7 @@ public class ustvariSliko extends AppCompatActivity {
         elementRecyclerView = findViewById(R.id.elementRecyclerView);
         previousArrow = findViewById(R.id.previousArrow);
         nextArrow = findViewById(R.id.nextArrow);
-        addElementButton = findViewById(R.id.addElementButton);
+        addUstvariNalepko = findViewById(R.id.addUstvariNalepkoGrey);
 
     // Inside onCreate:
         vsiElementi = BranjeElementov.getElementDrawables();
@@ -61,9 +59,13 @@ public class ustvariSliko extends AppCompatActivity {
             posodobiGumbe();
         });
 
-        addElementButton.setOnClickListener(v -> {
-            // Tukaj lahko kasneje dodaš funkcionalnost za dodajanje novih elementov
-            Toast.makeText(this, "Dodajanje elementov še ni implementirano", Toast.LENGTH_SHORT).show();
+
+        addUstvariNalepko.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(UstvariSliko.this, UstvariNalepko.class);
+                startActivity(intent);
+            }
         });
 
         posodobiGumbe();

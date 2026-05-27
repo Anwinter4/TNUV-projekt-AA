@@ -116,12 +116,12 @@
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
-                android:id="@+id/addElementButton"
-                android:layout_width="60dp"
-                android:layout_height="wrap_content"
+                android:id="@+id/addUstvariNalepkoGrey"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/ic_add"
+                android:src="@drawable/ic_ustvari_nalepko_grey"
                 android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </LinearLayout>
