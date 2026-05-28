@@ -16,7 +16,7 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
     private List<String> elementi;
     private OnElementClickListener listener;
     private int trenutnaStran = 0;
-    private int elementiNaStran = 7;
+    private int elementiNaStran = 12; // Povečano na 12, da zapolni ves razpoložljiv prostor na večini telefonov
 
     public interface OnElementClickListener {
         void onElementClick(int drawableResId);

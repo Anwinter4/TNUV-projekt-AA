@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/ustvariSliko"
     android:background="#FEF8FA"
     android:orientation="vertical">
 
@@ -14,51 +15,46 @@
         app:contentInsetStart="0dp"
         app:contentInsetLeft="0dp">
 
-    <ImageButton
-        android:id="@+id/btnBack"
-        android:src="@drawable/ic_arrow_back"
-        android:layout_height="50dp"
-        android:layout_width="50dp"
-        android:layout_weight="1"
-        android:backgroundTint="@android:color/transparent"/>
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:src="@drawable/ic_arrow_back"
+            android:layout_height="50dp"
+            android:layout_width="50dp"
+            android:layout_weight="0"
+            android:backgroundTint="@android:color/transparent"/>
 
-    <EditText
-        android:layout_width="300dp"
-        android:layout_height="40dp"
-        android:padding="5dp"
-        android:hint="Vnesi ime slike..."
-        android:inputType="text"
-        android:id="@+id/vnosno_polje"
-        android:layout_weight="1"
-        android:background="@drawable/greyboarder"
-        />
+        <EditText
+            android:layout_width="300dp"
+            android:layout_height="40dp"
+            android:padding="5dp"
+            android:hint="Vnesi ime slike..."
+            android:inputType="text"
+            android:id="@+id/vnosno_polje"
+            android:layout_weight="1"
+            android:background="@drawable/greyboarder" />
     </androidx.appcompat.widget.Toolbar>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:padding="0dp">
+        android:gravity="center">
 
         <ImageButton
             android:id="@+id/btnReverse"
             android:src="@drawable/ic_reverse"
-            android:layout_height="50dp"
+            android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
             android:backgroundTint="@android:color/transparent"/>
 
         <ImageButton
             android:id="@+id/btnRedo"
             android:src="@drawable/ic_redo"
-            android:layout_height="50dp"
+            android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
             android:backgroundTint="@android:color/transparent"/>
-
-
     </LinearLayout>
 
     <LinearLayout
@@ -68,26 +64,24 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="280dp"
+        <!-- ODSTRANJEN NestedScrollView za boljšo odzivnost -->
+        <FrameLayout
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
-            android:fillViewport="true"
-            android:layout_marginEnd="8dp"
             android:foreground="@drawable/greyboarder">
 
             <si.uni_lj.fe.tnuv.artly.DrawingView
                 android:id="@+id/canvas"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:paddingRight="200dp"
                 android:background="#FFFFFF" />
-        </androidx.core.widget.NestedScrollView>
-
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="60dp"
-            android:layout_height="490dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:background="@drawable/costumboarder"
             android:gravity="center">
@@ -96,7 +90,6 @@
                 android:id="@+id/previousArrow"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:src="@drawable/ic_arrow_up"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -111,7 +104,6 @@
                 android:id="@+id/nextArrow"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:src="@drawable/ic_arrow_down"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -119,7 +111,6 @@
                 android:id="@+id/addUstvariNalepkoGrey"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
                 android:src="@drawable/ic_ustvari_nalepko_grey"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -172,7 +163,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"/>
-
     </LinearLayout>
 
     <LinearLayout
@@ -200,5 +190,4 @@
             android:textSize="20sp"
             android:backgroundTint="#C06084"/>
     </LinearLayout>
-
 </LinearLayout>
