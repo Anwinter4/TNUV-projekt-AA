@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/ustvariNalepko"
     android:background="#FEF8FA"
     android:orientation="vertical">
 
@@ -14,41 +15,31 @@
         app:contentInsetStart="0dp"
         app:contentInsetLeft="0dp">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:src="@drawable/ic_arrow_back"
-            android:layout_height="50dp"
-            android:layout_width="50dp"
-            android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"/>
 
         <TextView
-            android:layout_width="170dp"
+            android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:padding="5dp"
+            android:layout_marginLeft="10dp"
             android:id="@+id/naslovUstvariNalepko"
             android:text="Ustvari Nalepko"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#C06084"
-            android:layout_weight="1"
-            />
+            android:layout_weight="1"/>
         <ImageButton
-            android:id="@+id/addElementButton"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/ic_add"
+            android:id="@+id/addUstvariNalepkoPink"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_ustvari_nalepko_pink"
             android:background="?attr/selectableItemBackgroundBorderless" />
-
     </androidx.appcompat.widget.Toolbar>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:padding="0dp">
+        android:layout_gravity="center">
 
         <ImageButton
             android:id="@+id/btnReverse"
@@ -78,25 +69,28 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <androidx.core.widget.NestedScrollView
+        <FrameLayout
             android:layout_width="280dp"
-            android:layout_height="match_parent"
+            android:layout_height="280dp"
             android:layout_weight="2"
             android:fillViewport="true"
             android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical"
             android:foreground="@drawable/greyboarder">
 
-            <si.uni_lj.fe.tnuv.artly.DrawingView
-                android:id="@+id/canvas"
+            <si.uni_lj.fe.tnuv.artly.NalepkaView
+                android:id="@+id/canvasNalepka"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFFFFF" />
-        </androidx.core.widget.NestedScrollView>
+                android:paddingRight="200dp"
+                android:layout_gravity="center_vertical"
+                android:background="#FFFFFF"/>
+        </FrameLayout>
 
 
         <LinearLayout
             android:layout_width="60dp"
-            android:layout_height="490dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/costumboarder"
@@ -113,7 +107,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/elementRecyclerView"
                 android:layout_width="60dp"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="4dp" />
 
@@ -151,13 +145,25 @@
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent" />
 
-        <ImageButton
-            android:id="@+id/btnPencil"
-            android:src="@drawable/ic_pencil"
-            android:layout_height="50dp"
+        <LinearLayout
+            android:layout_height="60dp"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"/>
+            android:orientation="vertical"
+            >
+            <ImageButton
+                android:id="@+id/btnPencil"
+                android:src="@drawable/ic_pencil"
+                android:layout_height="50dp"
+                android:layout_width="match_parent"
+                android:backgroundTint="@android:color/transparent"/>
+            <View
+                android:id="@+id/preview_selected_color"
+                android:layout_width="50dp"
+                android:layout_height="10dp"
+                android:layout_gravity="center"
+                android:background="@android:color/black" />
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/btnPlus"

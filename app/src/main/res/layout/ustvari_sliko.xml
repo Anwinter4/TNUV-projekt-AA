@@ -69,6 +69,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
+            android:layout_marginEnd="8dp"
             android:foreground="@drawable/greyboarder">
 
             <si.uni_lj.fe.tnuv.artly.DrawingView
@@ -76,12 +77,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingRight="200dp"
+                android:layout_gravity="center_vertical"
                 android:background="#FFFFFF" />
         </FrameLayout>
 
         <LinearLayout
             android:layout_width="60dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/costumboarder"
             android:gravity="center">
@@ -96,7 +98,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/elementRecyclerView"
                 android:layout_width="60dp"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="4dp" />
 
@@ -111,7 +113,6 @@
                 android:id="@+id/addUstvariNalepkoGrey"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:layout_marginTop="8dp"
                 android:src="@drawable/ic_ustvari_nalepko_grey"
                 android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
@@ -140,13 +141,25 @@
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent" />
 
-        <ImageButton
-            android:id="@+id/btnPencil"
-            android:src="@drawable/ic_pencil"
-            android:layout_height="50dp"
+        <LinearLayout
+            android:layout_height="60dp"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"/>
+            android:orientation="vertical"
+            >
+            <ImageButton
+                android:id="@+id/btnPencil"
+                android:src="@drawable/ic_pencil"
+                android:layout_height="50dp"
+                android:layout_width="match_parent"
+                android:backgroundTint="@android:color/transparent"/>
+            <View
+                android:id="@+id/preview_selected_color"
+                android:layout_width="50dp"
+                android:layout_height="10dp"
+                android:layout_gravity="center"
+                android:background="@android:color/black" />
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/btnPlus"

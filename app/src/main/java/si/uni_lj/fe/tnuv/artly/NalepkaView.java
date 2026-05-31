@@ -22,7 +22,7 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DrawingView extends View {
+public class NalepkaView extends View {
 
     private Paint paint;
     private Path path;
@@ -30,15 +30,13 @@ public class DrawingView extends View {
     private Bitmap drawingBitmap;
     private float lastX, lastY;
     private Bitmap backgroundBitmap;
-
     private boolean isDrawingEnabled = false;
     private boolean isEraserMode = false;
 
-    // Seznami za Undo/Redo in elemente
     private final List<Action> undoStack = new ArrayList<>();
     private final List<Action> redoStack = new ArrayList<>();
     private final List<SlikovniElement> elementi = new ArrayList<>();
-    
+
     private SlikovniElement izbranElement = null;
     private ScaleGestureDetector scaleGestureDetector;
     private float lastRotationAngle = 0;
@@ -46,7 +44,7 @@ public class DrawingView extends View {
     private final Rect srcRect = new Rect();
     private final Rect dstRect = new Rect();
 
-    public DrawingView(Context context, AttributeSet attrs) {
+    public NalepkaView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
@@ -58,6 +56,7 @@ public class DrawingView extends View {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10f);
         paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeJoin(Paint.Join.ROUND);
         path = new Path();
 
         scaleGestureDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -77,8 +76,6 @@ public class DrawingView extends View {
         this.isDrawingEnabled = enabled;
         this.isEraserMode = false;
         paint.setXfermode(null);
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(10f);
         if (enabled) izbranElement = null;
         invalidate();
     }
@@ -89,6 +86,7 @@ public class DrawingView extends View {
         if (eraser) {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             paint.setStrokeWidth(60f);
+            izbranElement = null;
         } else {
             paint.setXfermode(null);
             paint.setColor(Color.BLACK);
@@ -155,7 +153,7 @@ public class DrawingView extends View {
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
-        
+
         if (isDrawingEnabled && !isEraserMode) {
             canvas.drawPath(path, paint);
         }
@@ -184,9 +182,8 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_DOWN:
                 lastX = x;
                 lastY = y;
-                
+
                 izbranElement = null;
-                // Vedno najprej preverimo nalepke - če kliknemo nanjo, pero izklopimo
                 for (int i = elementi.size() - 1; i >= 0; i--) {
                     if (elementi.get(i).contains(x, y)) {
                         izbranElement = elementi.get(i);
@@ -250,9 +247,15 @@ public class DrawingView extends View {
         }
     }
 
-    public void setBackgroundBitmap(Bitmap bitmap) {
-        this.backgroundBitmap = bitmap;
-        invalidate();
+    public void addSvgElement(int resId) {
+        Drawable d = ContextCompat.getDrawable(getContext(), resId);
+        if (d != null) {
+            Bitmap b = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(b);
+            d.setBounds(0, 0, c.getWidth(), c.getHeight());
+            d.draw(c);
+            dodajSliko(b);
+        }
     }
 
     public void addElement(String identifier) {
@@ -264,51 +267,22 @@ public class DrawingView extends View {
         } else {
             int resId = getContext().getResources().getIdentifier(identifier, "drawable", getContext().getPackageName());
             if (resId != 0) {
-                Drawable d = ContextCompat.getDrawable(getContext(), resId);
-                if (d != null) {
-                    Bitmap b = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-                    Canvas c = new Canvas(b);
-                    d.setBounds(0, 0, c.getWidth(), c.getHeight());
-                    d.draw(c);
-                    dodajSliko(b);
-                }
+                addSvgElement(resId);
             }
         }
-    }
-
-    public Bitmap getFinalBitmap() {
-        if (getWidth() <= 0 || getHeight() <= 0) return null;
-        Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(result);
-
-        if (backgroundBitmap != null) {
-            srcRect.set(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
-            dstRect.set(0, 0, getWidth(), getHeight());
-            canvas.drawBitmap(backgroundBitmap, srcRect, dstRect, null);
-        } else {
-            canvas.drawColor(Color.WHITE);
-        }
-
-        for (SlikovniElement el : elementi) el.draw(canvas);
-
-        if (drawingBitmap != null) {
-            canvas.drawBitmap(drawingBitmap, 0, 0, null);
-        }
-
-        return result;
     }
 
     private interface Action {
         void perform(Canvas drawingCanvas, List<SlikovniElement> elements);
     }
 
-    private static class StrokeAction implements Action {
+    private static class StrokeAction implements NalepkaView.Action {
         Path path; Paint paint;
         StrokeAction(Path p, Paint pt) { this.path = p; this.paint = pt; }
         public void perform(Canvas c, List<SlikovniElement> e) { c.drawPath(path, paint); }
     }
 
-    private static class ElementAction implements Action {
+    private static class ElementAction implements NalepkaView.Action {
         SlikovniElement element;
         ElementAction(SlikovniElement el) { this.element = el; }
         public void perform(Canvas c, List<SlikovniElement> e) { e.add(element); }
@@ -328,6 +302,7 @@ public class DrawingView extends View {
             return pts[0] >= 0 && pts[0] <= bitmap.getWidth() && pts[1] >= 0 && pts[1] <= bitmap.getHeight();
         }
     }
+
     public void setPencilColor(int color) {
         this.isDrawingEnabled = true;
         this.isEraserMode = false;
@@ -337,5 +312,19 @@ public class DrawingView extends View {
         paint.setColor(color);
         paint.setStrokeWidth(10f);
         invalidate();
+    }
+
+    public Bitmap getFinalBitmap() {
+        if (getWidth() <= 0 || getHeight() <= 0) return null;
+        Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(result);
+        // Ne narišemo ozadja, da ostane prosojno
+        for (SlikovniElement el : elementi) {
+            el.draw(canvas);
+        }
+        if (drawingBitmap != null) {
+            canvas.drawBitmap(drawingBitmap, 0, 0, null);
+        }
+        return result;
     }
 }

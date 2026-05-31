@@ -3,12 +3,16 @@ package si.uni_lj.fe.tnuv.artly;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,9 +23,13 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import top.defaults.colorpicker.ColorPickerPopup;
 
 public class UstvariSliko extends AppCompatActivity {
 
@@ -29,7 +37,12 @@ public class UstvariSliko extends AppCompatActivity {
     private RecyclerView elementRecyclerView;
     private ElementAdapter elementAdapter;
     private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack;
+    private Button btnShrani;
+    private EditText vnosnoPolje;
     private List<String> vsiElementi;
+    private View mColorPreview;
+    private int mDefaultColor = Color.BLACK;
+
 
     private static final int PICK_IMAGE = 1;
 
@@ -44,8 +57,6 @@ public class UstvariSliko extends AppCompatActivity {
             return insets;
         });
 
-
-
         drawingView = findViewById(R.id.canvas);
         elementRecyclerView = findViewById(R.id.elementRecyclerView);
         previousArrow = findViewById(R.id.previousArrow);
@@ -59,14 +70,35 @@ public class UstvariSliko extends AppCompatActivity {
         btnTrash = findViewById(R.id.btnTrash);
         btnBack = findViewById(R.id.btnBack);
 
-        vsiElementi = BranjeElementov.getElementDrawables();
+        btnShrani = findViewById(R.id.btnShrani);
+        vnosnoPolje = findViewById(R.id.vnosno_polje);
+        mColorPreview = findViewById(R.id.preview_selected_color);
+
+
+        vsiElementi = BranjeElementov.getElementDrawables(this);
         elementRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         elementAdapter = new ElementAdapter(vsiElementi, drawableId -> {
-            drawingView.addSvgElement(drawableId);
+            drawingView.addElement(drawableId);
         });
 
         elementRecyclerView.setAdapter(elementAdapter);
+
+        // Preveri če urejamo obstoječo sliko
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("imagePath")) {
+            String path = intent.getStringExtra("imagePath");
+            String name = intent.getStringExtra("imageName");
+            if (path != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(path);
+                if (bitmap != null) {
+                    drawingView.post(() -> drawingView.setBackgroundBitmap(bitmap));
+                }
+            }
+            if (name != null) {
+                vnosnoPolje.setText(name);
+            }
+        }
 
         previousArrow.setOnClickListener(v -> {
             elementAdapter.naPrejsnjoStran();
@@ -79,14 +111,14 @@ public class UstvariSliko extends AppCompatActivity {
         });
 
         addUstvariNalepko.setOnClickListener(v -> {
-            Intent intent = new Intent(UstvariSliko.this, UstvariNalepko.class);
-            startActivity(intent);
+            Intent nextIntent = new Intent(UstvariSliko.this, UstvariNalepko.class);
+            startActivity(nextIntent);
         });
 
         dodajSliko.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK,
+            Intent pickIntent = new Intent(Intent.ACTION_PICK,
                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, PICK_IMAGE);
+            startActivityForResult(pickIntent, PICK_IMAGE);
         });
 
         // Gumb za svinčnik - vklopi risanje
@@ -99,6 +131,29 @@ public class UstvariSliko extends AppCompatActivity {
         btnEraser.setOnClickListener(v -> {
             drawingView.setEraserMode(true);
             Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
+        });
+
+        btnPencil.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                new ColorPickerPopup.Builder(UstvariSliko.this)
+                        .initialColor(mDefaultColor)
+                        .enableBrightness(true)
+                        .enableAlpha(true)
+                        .okTitle("V redu")
+                        .cancelTitle("Prekliči")
+                        .showIndicator(true)
+                        .showValue(true)
+                        .build()
+                        .show(v, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                mDefaultColor = color;
+                                mColorPreview.setBackgroundColor(mDefaultColor);
+                                drawingView.setPencilColor(mDefaultColor);
+                            }
+                        });
+            }
         });
 
         // Gumb za koš (Trash) - pobriše vse (risbo in nalepke)
@@ -119,7 +174,62 @@ public class UstvariSliko extends AppCompatActivity {
 
         btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
+        btnShrani.setOnClickListener(v -> {
+            if(!vnosnoPolje.getText().toString().isEmpty()) {
+                // Shrani
+                shraniSliko(vnosnoPolje.getText().toString());
+            } else {
+                // EditText is empty - show error or handle it
+                Toast.makeText(this, "Vnosno polje ne sme biti prazno!", Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+
         posodobiGumbe();
+    }
+
+    private void shraniSliko(String imeSlike) {
+        Bitmap bitmap = drawingView.getFinalBitmap();
+        if (bitmap == null) {
+            Toast.makeText(this, "Napaka pri generiranju slike", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Shranimo v mapo 'album' znotraj internih datotek aplikacije
+        File directory = new File(getFilesDir(), "album");
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        File file = new File(directory, imeSlike + ".png");
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            Toast.makeText(this, "Slika '" + imeSlike + "' shranjena!", Toast.LENGTH_SHORT).show();
+
+            // Po shranjevanju počistimo polje in platno (opcijsko)
+            vnosnoPolje.setText("");
+            drawingView.clearAll();
+            // Vrni se nazaj v Album
+            finish();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Napaka pri shranjevanju datoteke", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        osveziElemente();
+    }
+
+    private void osveziElemente() {
+        vsiElementi = BranjeElementov.getElementDrawables(this);
+        if (elementAdapter != null) {
+            elementAdapter.setElementi(vsiElementi);
+            posodobiGumbe();
+        }
     }
 
     @Override
@@ -147,6 +257,8 @@ public class UstvariSliko extends AppCompatActivity {
         }
     }
 
+
+
     private Bitmap rotateImageIfRequired(Bitmap img, Uri selectedImage) throws IOException {
         InputStream input = getContentResolver().openInputStream(selectedImage);
         ExifInterface ei;
@@ -155,7 +267,7 @@ public class UstvariSliko extends AppCompatActivity {
         } else {
             ei = new ExifInterface(selectedImage.getPath());
         }
-        
+
         int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
         if (input != null) input.close();
 
@@ -168,7 +280,7 @@ public class UstvariSliko extends AppCompatActivity {
                 return rotateImage(img, 270);
             default:
                 return img;
-        }
+            }
     }
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
@@ -177,6 +289,16 @@ public class UstvariSliko extends AppCompatActivity {
         Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
         img.recycle();
         return rotatedImg;
+    }
+
+    private void setupColorClick(View popupView, int viewId, int color, PopupWindow popupWindow) {
+        View colorView = popupView.findViewById(viewId);
+        if (colorView != null) {
+            colorView.setOnClickListener(v -> {
+                drawingView.setPencilColor(color);
+                popupWindow.dismiss();
+            });
+        }
     }
 
     private void posodobiGumbe() {

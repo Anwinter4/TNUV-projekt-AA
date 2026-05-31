@@ -1,6 +1,8 @@
 package si.uni_lj.fe.tnuv.artly;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.util.List;
 
 public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHolder> {
@@ -16,15 +19,20 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
     private List<String> elementi;
     private OnElementClickListener listener;
     private int trenutnaStran = 0;
-    private int elementiNaStran = 12; // Povečano na 12, da zapolni ves razpoložljiv prostor na večini telefonov
+    private int elementiNaStran = 7;
 
     public interface OnElementClickListener {
-        void onElementClick(int drawableResId);
+        void onElementClick(String identifier);
     }
 
     public ElementAdapter(List<String> elementi, OnElementClickListener listener) {
         this.elementi = elementi;
         this.listener = listener;
+    }
+
+    public void setElementi(List<String> noviElementi) {
+        this.elementi = noviElementi;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -40,17 +48,24 @@ public class ElementAdapter extends RecyclerView.Adapter<ElementAdapter.ViewHold
         int realPosition = trenutnaStran * elementiNaStran + position;
 
         if (realPosition < elementi.size()) {
-            String drawableName = elementi.get(realPosition);
+            String elementIdentifier = elementi.get(realPosition);
             Context context = holder.itemView.getContext();
-            int drawableId = context.getResources().getIdentifier(drawableName, "drawable", context.getPackageName());
 
-            if (drawableId != 0) {
-                holder.imageView.setImageResource(drawableId);
+            if (elementIdentifier.startsWith("/")) {
+                Bitmap bitmap = BitmapFactory.decodeFile(elementIdentifier);
+                if (bitmap != null) {
+                    holder.imageView.setImageBitmap(bitmap);
+                }
+            } else {
+                int drawableId = context.getResources().getIdentifier(elementIdentifier, "drawable", context.getPackageName());
+                if (drawableId != 0) {
+                    holder.imageView.setImageResource(drawableId);
+                }
             }
 
             holder.itemView.setOnClickListener(v -> {
-                if (listener != null && drawableId != 0) {
-                    listener.onElementClick(drawableId);
+                if (listener != null) {
+                    listener.onElementClick(elementIdentifier);
                 }
             });
 
