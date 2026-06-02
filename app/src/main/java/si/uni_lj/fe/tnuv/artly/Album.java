@@ -2,15 +2,20 @@ package si.uni_lj.fe.tnuv.artly;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,6 +30,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -78,6 +85,8 @@ public class Album extends AppCompatActivity {
         slikaRecyclerView.setAdapter(albumAdapter);
     }
 
+
+
     private void prikaziPopup(File file) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -97,6 +106,7 @@ public class Album extends AppCompatActivity {
         TextView popupNaslov = dialog.findViewById(R.id.naslovSlike);
         ImageButton btnUrediSliko = dialog.findViewById(R.id.btnUrediSliko);
         ImageButton btnIzbrisiSliko = dialog.findViewById(R.id.btnIzbrisiSliko);
+        ImageButton btnExport = dialog.findViewById(R.id.btnIzvoziSliko);
 
         // Nastavi ime
         String fileName = file.getName();
@@ -137,10 +147,50 @@ public class Album extends AppCompatActivity {
                     .show();
         });
 
+        btnExport.setOnClickListener(v -> exportajSliko(bitmap, popupNaslov.getText().toString()));
+
         // Zapri ob kliku izven
         dialog.setCanceledOnTouchOutside(true);
 
         dialog.show();
+    }
+
+    public void exportajSliko(Bitmap bitmap, String imeSlike) {
+        if (bitmap == null) {
+            Toast.makeText(this, "Napaka: slika ni naložena", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String imeDatoteke = (imeSlike == null || imeSlike.isEmpty()) ? "Artly_izvoz" : imeSlike;
+        imeDatoteke += "_" + System.currentTimeMillis() + ".png";
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Artly");
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        if (uri != null) {
+            try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    getContentResolver().update(uri, values, null, null);
+                }
+
+                Toast.makeText(this, "Slika uspešno izvožena v album Artly!", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Napaka pri izvozu slike", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override

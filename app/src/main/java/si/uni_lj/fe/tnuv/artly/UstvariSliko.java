@@ -1,5 +1,6 @@
 package si.uni_lj.fe.tnuv.artly;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,12 +32,17 @@ import java.util.List;
 
 import top.defaults.colorpicker.ColorPickerPopup;
 
+import android.content.ContentValues;
+import android.os.Build;
+import android.provider.MediaStore;
+import java.io.OutputStream;
+
 public class UstvariSliko extends AppCompatActivity {
 
     private DrawingView drawingView;
     private RecyclerView elementRecyclerView;
     private ElementAdapter elementAdapter;
-    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack;
+    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack, btnExport;
     private Button btnShrani;
     private EditText vnosnoPolje;
     private List<String> vsiElementi;
@@ -69,6 +75,7 @@ public class UstvariSliko extends AppCompatActivity {
         btnRedo = findViewById(R.id.btnRedo);
         btnTrash = findViewById(R.id.btnTrash);
         btnBack = findViewById(R.id.btnBack);
+        btnExport = findViewById(R.id.btnExport);
 
         btnShrani = findViewById(R.id.btnShrani);
         vnosnoPolje = findViewById(R.id.vnosno_polje);
@@ -172,7 +179,17 @@ public class UstvariSliko extends AppCompatActivity {
             drawingView.redo();
         });
 
-        btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+        btnBack.setOnClickListener(v -> {
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Vrni na domačo stran")
+                    .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        getOnBackPressedDispatcher().onBackPressed();
+                    })
+                    .setNegativeButton("Prekliči", null)
+                    .show();
+        } );
 
         btnShrani.setOnClickListener(v -> {
             if(!vnosnoPolje.getText().toString().isEmpty()) {
@@ -185,6 +202,10 @@ public class UstvariSliko extends AppCompatActivity {
 
 
         });
+
+        btnExport.setOnClickListener(v -> exportajSliko());
+
+
 
         posodobiGumbe();
     }
@@ -215,6 +236,59 @@ public class UstvariSliko extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Napaka pri shranjevanju datoteke", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void exportajSliko() {
+        Bitmap bitmap = drawingView.getFinalBitmap();
+        if (bitmap == null) {
+            Toast.makeText(this, "Napaka pri generiranju slike", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. Preberi ime iz vnosnega polja
+        String vnesenoIme = vnosnoPolje.getText().toString().trim();
+        String imeDatoteke;
+
+        // Če je polje prazno, uporabi privzeto ime, sicer vneseno.
+        // Dodamo milisekunde (System.currentTimeMillis()), da preprečimo prepisovanje datotek z istim imenom.
+        if (vnesenoIme.isEmpty()) {
+            imeDatoteke = "Artly_slika_" + System.currentTimeMillis() + ".png";
+        } else {
+            imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + ".png";
+        }
+
+        // 2. Priprava metapodatkov za galerijo (MediaStore)
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+
+        // Za Android 10 (API 29) in novejše ustvarimo mapo "Pictures/Artly"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Artly");
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        // Vstavimo zapis v sistemsko bazo slik
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        if (uri != null) {
+            try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                // Dejansko shranjevanje bitmape v izhodni tok (stream)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+                // Končamo postopek in sprostimo datoteko za druge aplikacije (samo za Android 10+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    getContentResolver().update(uri, values, null, null);
+                }
+
+                Toast.makeText(this, "Slika uspešno izvožena v galerijo (Pictures/Artly)!", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Napaka pri izvozu slike", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
