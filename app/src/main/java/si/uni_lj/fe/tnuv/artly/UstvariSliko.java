@@ -17,6 +17,7 @@ import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -81,7 +82,12 @@ public class UstvariSliko extends AppCompatActivity {
         vnosnoPolje = findViewById(R.id.vnosno_polje);
         mColorPreview = findViewById(R.id.preview_selected_color);
 
-
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                prikaziDialogZaIzhod();
+            }
+        });
         vsiElementi = BranjeElementov.getElementDrawables(this);
         elementRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -179,17 +185,7 @@ public class UstvariSliko extends AppCompatActivity {
             drawingView.redo();
         });
 
-        btnBack.setOnClickListener(v -> {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Vrni na domačo stran")
-                    .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
-                    .setPositiveButton("OK", (dialogInterface, i) -> {
-                        getOnBackPressedDispatcher().onBackPressed();
-                    })
-                    .setNegativeButton("Prekliči", null)
-                    .show();
-        } );
+        btnBack.setOnClickListener(v -> prikaziDialogZaIzhod());
 
         btnShrani.setOnClickListener(v -> {
             if(!vnosnoPolje.getText().toString().isEmpty()) {
@@ -208,6 +204,18 @@ public class UstvariSliko extends AppCompatActivity {
 
 
         posodobiGumbe();
+    }
+
+    private void prikaziDialogZaIzhod() {
+        new AlertDialog.Builder(this)
+                .setTitle("Vrni na domačo stran")
+                .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
+                .setPositiveButton("OK", (dialogInterface, i) -> {
+                    // Tukaj dejansko zapremo aktivnost
+                    finish();
+                })
+                .setNegativeButton("Prekliči", null)
+                .show();
     }
 
     private void shraniSliko(String imeSlike) {
