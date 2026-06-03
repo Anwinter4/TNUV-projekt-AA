@@ -28,6 +28,7 @@
             android:layout_height="40dp"
             android:padding="5dp"
             android:hint="Vnesi ime slike..."
+            android:maxLength="15"
             android:inputType="text"
             android:id="@+id/vnosno_polje"
             android:layout_weight="1"

@@ -205,7 +205,7 @@ public class UstvariSliko extends AppCompatActivity {
         btnExport.setOnClickListener(v -> exportajSliko());
 
         btnAlbum.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Pojdi v album")
                     .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
                     .setPositiveButton("OK", (dialogInterface, i) -> {
@@ -223,8 +223,8 @@ public class UstvariSliko extends AppCompatActivity {
     }
 
     private void prikaziDialogZaIzhod() {
-        new AlertDialog.Builder(this)
-                .setTitle("Vrni na domačo stran")
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("Pojdi na na domačo stran")
                 .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
                 .setPositiveButton("OK", (dialogInterface, i) -> {
                     // Tukaj dejansko zapremo aktivnost
