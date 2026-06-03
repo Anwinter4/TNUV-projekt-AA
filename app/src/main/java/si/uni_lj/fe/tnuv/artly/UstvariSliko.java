@@ -43,7 +43,7 @@ public class UstvariSliko extends AppCompatActivity {
     private DrawingView drawingView;
     private RecyclerView elementRecyclerView;
     private ElementAdapter elementAdapter;
-    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack, btnExport;
+    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack, btnExport, btnAlbum;
     private Button btnShrani;
     private EditText vnosnoPolje;
     private List<String> vsiElementi;
@@ -77,6 +77,7 @@ public class UstvariSliko extends AppCompatActivity {
         btnTrash = findViewById(R.id.btnTrash);
         btnBack = findViewById(R.id.btnBack);
         btnExport = findViewById(R.id.btnExport);
+        btnAlbum = findViewById(R.id.btnAlbum);
 
         btnShrani = findViewById(R.id.btnShrani);
         vnosnoPolje = findViewById(R.id.vnosno_polje);
@@ -201,6 +202,19 @@ public class UstvariSliko extends AppCompatActivity {
 
         btnExport.setOnClickListener(v -> exportajSliko());
 
+        btnAlbum.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Pojdi v album")
+                    .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        Intent nextIntent = new Intent(UstvariSliko.this, Album.class);
+                        startActivity(nextIntent);
+                    })
+                    .setNegativeButton("Prekliči", null)
+                    .show();
+
+
+        });
 
 
         posodobiGumbe();
