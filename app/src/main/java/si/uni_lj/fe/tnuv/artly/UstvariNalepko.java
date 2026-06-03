@@ -15,9 +15,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -32,7 +34,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
-import top.defaults.colorpicker.ColorPickerPopup;
+import top.defaults.colorpicker.ColorPickerView;
 
 public class UstvariNalepko extends AppCompatActivity {
 
@@ -125,37 +127,67 @@ public class UstvariNalepko extends AppCompatActivity {
             drawingView.redo();
         });
 
-        btnPencil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                new ColorPickerPopup.Builder(UstvariNalepko.this)
-                        .initialColor(mDefaultColor)
-                        .enableBrightness(true)
-                        .enableAlpha(true)
-                        .okTitle("V redu")
-                        .cancelTitle("Prekliči")
-                        .showIndicator(true)
-                        .showValue(true)
-                        .build()
-                        .show(v, new ColorPickerPopup.ColorPickerObserver() {
-                            @Override
-                            public void onColorPicked(int color) {
-                                mDefaultColor = color;
-                                mColorPreview.setBackgroundColor(mDefaultColor);
-                                drawingView.setPencilColor(mDefaultColor);
-                            }
-                        });
-            }
+        drawingView.setOnStateChangeListener(() -> {
+            drawingView.greyUndo(btnReverse);
+            drawingView.greyRedo(btnRedo);
         });
 
-        btnPreklici.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(UstvariNalepko.this, UstvariSliko.class);
-                startActivity(intent);
-                finish();
+        // Pokličite še ročno na začetku, da nastavite začetno stanje (oba siva)
+        drawingView.greyUndo(btnReverse);
+        drawingView.greyRedo(btnRedo);
+
+        btnPencil.setOnClickListener(v -> {
+            drawingView.setEraserMode(false);
+            
+            View popupView = LayoutInflater.from(UstvariNalepko.this).inflate(R.layout.top_defaults_view_color_picker_popup, null);
+            AlertDialog dialog = new AlertDialog.Builder(UstvariNalepko.this)
+                    .setView(popupView)
+                    .create();
+
+            ColorPickerView colorPickerView = popupView.findViewById(R.id.colorPickerView);
+            colorPickerView.setInitialColor(mDefaultColor);
+            
+            View colorIndicator = popupView.findViewById(R.id.colorIndicator);
+            if (colorIndicator != null) {
+                colorIndicator.setBackgroundColor(mDefaultColor);
             }
+
+            colorPickerView.subscribe((color, fromUser, shouldPropagate) -> {
+                if (colorIndicator != null) {
+                    colorIndicator.setBackgroundColor(color);
+                }
+            });
+
+            TextView btnOk = popupView.findViewById(R.id.ok);
+            btnOk.setText("V redu");
+            btnOk.setOnClickListener(view -> {
+                mDefaultColor = colorPickerView.getColor();
+                mColorPreview.setBackgroundColor(mDefaultColor);
+                drawingView.setPencilColor(mDefaultColor);
+                dialog.dismiss();
+            });
+
+            TextView btnCancel = popupView.findViewById(R.id.cancel);
+            btnCancel.setText("Prekliči");
+            btnCancel.setOnClickListener(view -> dialog.dismiss());
+
+            popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
+                drawingView.penSize1();
+                Toast.makeText(UstvariNalepko.this, "Debelina 1 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
+                drawingView.penSize3();
+                Toast.makeText(UstvariNalepko.this, "Debelina 3 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
+                drawingView.penSize5();
+                Toast.makeText(UstvariNalepko.this, "Debelina 5 izbrana", Toast.LENGTH_SHORT).show();
+            });
+
+            dialog.show();
         });
+
+        btnPreklici.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         
         btnShrani.setOnClickListener(v -> {
             shraniNalepko();
@@ -252,35 +284,14 @@ public class UstvariNalepko extends AppCompatActivity {
         return rotatedImg;
     }
 
-    private void showColorPickerPopup(View anchor) {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = inflater.inflate(R.layout.color_picker_popup, null);
+    private void posodobiGumbe() {
+        if (elementAdapter != null) {
+            previousArrow.setEnabled(elementAdapter.imaPrejsnjoStran());
+            previousArrow.setAlpha(elementAdapter.imaPrejsnjoStran() ? 1.0f : 0.5f);
 
-        int width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true;
-        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-        // Required to make it dismiss when clicking outside
-        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        popupWindow.setElevation(10);
-
-        // Set up color square clicks
-        setupColorClick(popupView, R.id.colorBlack, Color.BLACK, popupWindow);
-        setupColorClick(popupView, R.id.colorRed, Color.RED, popupWindow);
-        setupColorClick(popupView, R.id.colorBlue, Color.BLUE, popupWindow);
-        setupColorClick(popupView, R.id.colorGreen, Color.GREEN, popupWindow);
-        setupColorClick(popupView, R.id.colorYellow, Color.YELLOW, popupWindow);
-        setupColorClick(popupView, R.id.colorCyan, Color.CYAN, popupWindow);
-        setupColorClick(popupView, R.id.colorMagenta, Color.MAGENTA, popupWindow);
-        setupColorClick(popupView, R.id.colorOrange, Color.parseColor("#FFA500"), popupWindow);
-
-        // Calculate location to show above the button
-        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        int popupHeight = popupView.getMeasuredHeight();
-
-        // Show the popup above the anchor button
-        popupWindow.showAsDropDown(anchor, 0, -anchor.getHeight() - popupHeight - 20);
+            nextArrow.setEnabled(elementAdapter.imaNaslednjoStran());
+            nextArrow.setAlpha(elementAdapter.imaNaslednjoStran() ? 1.0f : 0.5f);
+        }
     }
 
     private void setupColorClick(View popupView, int viewId, int color, PopupWindow popupWindow) {
@@ -290,16 +301,6 @@ public class UstvariNalepko extends AppCompatActivity {
                 drawingView.setPencilColor(color);
                 popupWindow.dismiss();
             });
-        }
-    }
-
-    private void posodobiGumbe() {
-        if (elementAdapter != null) {
-            previousArrow.setEnabled(elementAdapter.imaPrejsnjoStran());
-            previousArrow.setAlpha(elementAdapter.imaPrejsnjoStran() ? 1.0f : 0.5f);
-
-            nextArrow.setEnabled(elementAdapter.imaNaslednjoStran());
-            nextArrow.setAlpha(elementAdapter.imaNaslednjoStran() ? 1.0f : 0.5f);
         }
     }
 }

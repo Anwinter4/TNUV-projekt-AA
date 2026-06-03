@@ -8,14 +8,17 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,7 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import top.defaults.colorpicker.ColorPickerPopup;
+import top.defaults.colorpicker.ColorPickerView;
 
 public class UstvariSliko extends AppCompatActivity {
 
@@ -121,39 +124,61 @@ public class UstvariSliko extends AppCompatActivity {
             startActivityForResult(pickIntent, PICK_IMAGE);
         });
 
-        // Gumb za svinčnik - vklopi risanje
-        btnPencil.setOnClickListener(v -> {
-            drawingView.setDrawingEnabled(true);
-            Toast.makeText(this, "Pero vklopljeno", Toast.LENGTH_SHORT).show();
-        });
-
         // Gumb za radirko - postopno brisanje (gradual eraser)
         btnEraser.setOnClickListener(v -> {
             drawingView.setEraserMode(true);
             Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
         });
 
-        btnPencil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                new ColorPickerPopup.Builder(UstvariSliko.this)
-                        .initialColor(mDefaultColor)
-                        .enableBrightness(true)
-                        .enableAlpha(true)
-                        .okTitle("V redu")
-                        .cancelTitle("Prekliči")
-                        .showIndicator(true)
-                        .showValue(true)
-                        .build()
-                        .show(v, new ColorPickerPopup.ColorPickerObserver() {
-                            @Override
-                            public void onColorPicked(int color) {
-                                mDefaultColor = color;
-                                mColorPreview.setBackgroundColor(mDefaultColor);
-                                drawingView.setPencilColor(mDefaultColor);
-                            }
-                        });
+        btnPencil.setOnClickListener(v -> {
+            drawingView.setEraserMode(false);
+            
+            View popupView = LayoutInflater.from(UstvariSliko.this).inflate(R.layout.top_defaults_view_color_picker_popup, null);
+            AlertDialog dialog = new AlertDialog.Builder(UstvariSliko.this)
+                    .setView(popupView)
+                    .create();
+
+            ColorPickerView colorPickerView = popupView.findViewById(R.id.colorPickerView);
+            colorPickerView.setInitialColor(mDefaultColor);
+            
+            View colorIndicator = popupView.findViewById(R.id.colorIndicator);
+            if (colorIndicator != null) {
+                colorIndicator.setBackgroundColor(mDefaultColor);
             }
+
+            colorPickerView.subscribe((color, fromUser, shouldPropagate) -> {
+                if (colorIndicator != null) {
+                    colorIndicator.setBackgroundColor(color);
+                }
+            });
+
+            TextView btnOk = popupView.findViewById(R.id.ok);
+            btnOk.setText("V redu");
+            btnOk.setOnClickListener(view -> {
+                mDefaultColor = colorPickerView.getColor();
+                mColorPreview.setBackgroundColor(mDefaultColor);
+                drawingView.setPencilColor(mDefaultColor);
+                dialog.dismiss();
+            });
+
+            TextView btnCancel = popupView.findViewById(R.id.cancel);
+            btnCancel.setText("Prekliči");
+            btnCancel.setOnClickListener(view -> dialog.dismiss());
+
+            popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
+                drawingView.penSize1();
+                Toast.makeText(UstvariSliko.this, "Debelina 1 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
+                drawingView.penSize3();
+                Toast.makeText(UstvariSliko.this, "Debelina 3 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
+                drawingView.penSize5();
+                Toast.makeText(UstvariSliko.this, "Debelina 5 izbrana", Toast.LENGTH_SHORT).show();
+            });
+
+            dialog.show();
         });
 
         // Gumb za koš (Trash) - pobriše vse (risbo in nalepke)
@@ -289,16 +314,6 @@ public class UstvariSliko extends AppCompatActivity {
         Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
         img.recycle();
         return rotatedImg;
-    }
-
-    private void setupColorClick(View popupView, int viewId, int color, PopupWindow popupWindow) {
-        View colorView = popupView.findViewById(viewId);
-        if (colorView != null) {
-            colorView.setOnClickListener(v -> {
-                drawingView.setPencilColor(color);
-                popupWindow.dismiss();
-            });
-        }
     }
 
     private void posodobiGumbe() {

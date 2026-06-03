@@ -33,6 +33,8 @@ public class DrawingView extends View {
 
     private boolean isDrawingEnabled = false;
     private boolean isEraserMode = false;
+    private float currentPenSize = 10f;
+    private int currentPencilColor = Color.BLACK;
 
     // Seznami za Undo/Redo in elemente
     private final List<Action> undoStack = new ArrayList<>();
@@ -54,9 +56,9 @@ public class DrawingView extends View {
     private void init(Context context) {
         paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setColor(Color.BLACK);
+        paint.setColor(currentPencilColor);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10f);
+        paint.setStrokeWidth(currentPenSize);
         paint.setStrokeCap(Paint.Cap.ROUND);
         path = new Path();
 
@@ -77,22 +79,22 @@ public class DrawingView extends View {
         this.isDrawingEnabled = enabled;
         this.isEraserMode = false;
         paint.setXfermode(null);
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(10f);
+        paint.setColor(currentPencilColor);
+        paint.setStrokeWidth(currentPenSize);
         if (enabled) izbranElement = null;
         invalidate();
     }
 
     public void setEraserMode(boolean eraser) {
         this.isEraserMode = eraser;
-        this.isDrawingEnabled = eraser;
+        this.isDrawingEnabled = true;
         if (eraser) {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             paint.setStrokeWidth(60f);
         } else {
             paint.setXfermode(null);
-            paint.setColor(Color.BLACK);
-            paint.setStrokeWidth(10f);
+            paint.setColor(currentPencilColor);
+            paint.setStrokeWidth(currentPenSize);
         }
         invalidate();
     }
@@ -329,13 +331,36 @@ public class DrawingView extends View {
         }
     }
     public void setPencilColor(int color) {
+        this.currentPencilColor = color;
         this.isDrawingEnabled = true;
         this.isEraserMode = false;
         this.izbranElement = null;
 
         paint.setXfermode(null);
-        paint.setColor(color);
-        paint.setStrokeWidth(10f);
+        paint.setColor(currentPencilColor);
+        paint.setStrokeWidth(currentPenSize);
+        invalidate();
+    }
+
+    public void penSize1(){
+        currentPenSize = 10f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
+        invalidate();
+    }
+    public void penSize3(){
+        currentPenSize = 30f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
+        invalidate();
+    }
+    public void penSize5(){
+        currentPenSize = 50f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
         invalidate();
     }
 }

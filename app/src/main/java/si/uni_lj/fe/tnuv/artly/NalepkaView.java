@@ -11,11 +11,13 @@ import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.ImageButton;
 
 import androidx.core.content.ContextCompat;
 
@@ -32,6 +34,8 @@ public class NalepkaView extends View {
     private Bitmap backgroundBitmap;
     private boolean isDrawingEnabled = false;
     private boolean isEraserMode = false;
+    private float currentPenSize = 10f;
+    private int currentPencilColor = Color.BLACK;
 
     private final List<Action> undoStack = new ArrayList<>();
     private final List<Action> redoStack = new ArrayList<>();
@@ -52,9 +56,9 @@ public class NalepkaView extends View {
     private void init(Context context) {
         paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setColor(Color.BLACK);
+        paint.setColor(currentPencilColor);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10f);
+        paint.setStrokeWidth(currentPenSize);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);
         path = new Path();
@@ -76,21 +80,23 @@ public class NalepkaView extends View {
         this.isDrawingEnabled = enabled;
         this.isEraserMode = false;
         paint.setXfermode(null);
+        paint.setColor(currentPencilColor);
+        paint.setStrokeWidth(currentPenSize);
         if (enabled) izbranElement = null;
         invalidate();
     }
 
     public void setEraserMode(boolean eraser) {
         this.isEraserMode = eraser;
-        this.isDrawingEnabled = eraser;
+        this.isDrawingEnabled = true; // Both pencil and eraser use drawing mode
         if (eraser) {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             paint.setStrokeWidth(60f);
             izbranElement = null;
         } else {
             paint.setXfermode(null);
-            paint.setColor(Color.BLACK);
-            paint.setStrokeWidth(10f);
+            paint.setColor(currentPencilColor);
+            paint.setStrokeWidth(currentPenSize);
         }
         invalidate();
     }
@@ -99,20 +105,51 @@ public class NalepkaView extends View {
         if (!undoStack.isEmpty()) {
             redoStack.add(undoStack.remove(undoStack.size() - 1));
             rebuildEverything();
+            notifyStateChanged();
         }
     }
 
     public void redo() {
         if (!redoStack.isEmpty()) {
-            undoStack.add(redoStack.remove(undoStack.size() - 1));
+            undoStack.add(redoStack.remove(redoStack.size() - 1));
             rebuildEverything();
+            notifyStateChanged();
         }
+    }
+
+    public interface OnStateChangeListener {
+        void onStateChanged();
+    }
+
+    private OnStateChangeListener stateChangeListener;
+
+    public void setOnStateChangeListener(OnStateChangeListener listener) {
+        this.stateChangeListener = listener;
+    }
+
+    private void notifyStateChanged() {
+        if (stateChangeListener != null) {
+            stateChangeListener.onStateChanged();
+        }
+    }
+
+    public void greyUndo(ImageButton button) {
+        boolean canUndo = !undoStack.isEmpty();
+        button.setAlpha(canUndo ? 1.0f : 0.5f);
+        button.setEnabled(canUndo);
+    }
+
+    public void greyRedo(ImageButton button) {
+        boolean canRedo = !redoStack.isEmpty();
+        button.setAlpha(canRedo ? 1.0f : 0.5f);
+        button.setEnabled(canRedo);
     }
 
     public void clearAll() {
         undoStack.clear();
         redoStack.clear();
         rebuildEverything();
+        notifyStateChanged();
     }
 
     private void rebuildEverything() {
@@ -219,6 +256,7 @@ public class NalepkaView extends View {
                         canvas.drawPath(path, paint);
                         undoStack.add(new StrokeAction(new Path(path), new Paint(paint)));
                         redoStack.clear();
+                        notifyStateChanged();
                     }
                 }
                 path.reset();
@@ -238,23 +276,26 @@ public class NalepkaView extends View {
 
     public void dodajSliko(Bitmap bitmap) {
         if (bitmap != null) {
+            Drawable d = new BitmapDrawable(getResources(), bitmap);
             float offset = elementi.size() * 60f;
-            SlikovniElement el = new SlikovniElement(bitmap, 150 + offset, 150 + offset, 450);
+            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450);
             undoStack.add(new ElementAction(el));
             redoStack.clear();
             rebuildEverything();
             setDrawingEnabled(false);
+            notifyStateChanged();
         }
     }
 
     public void addSvgElement(int resId) {
         Drawable d = ContextCompat.getDrawable(getContext(), resId);
         if (d != null) {
-            Bitmap b = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-            Canvas c = new Canvas(b);
-            d.setBounds(0, 0, c.getWidth(), c.getHeight());
-            d.draw(c);
-            dodajSliko(b);
+            float offset = elementi.size() * 60f;
+            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450);
+            undoStack.add(new ElementAction(el));
+            redoStack.clear();
+            rebuildEverything();
+            notifyStateChanged();
         }
     }
 
@@ -289,28 +330,45 @@ public class NalepkaView extends View {
     }
 
     private static class SlikovniElement {
-        Bitmap bitmap; Matrix matrix = new Matrix();
-        SlikovniElement(Bitmap b, float x, float y, float w) {
-            this.bitmap = b;
-            float s = w / b.getWidth();
-            matrix.postScale(s, s); matrix.postTranslate(x, y);
+        Drawable drawable;
+        Matrix matrix = new Matrix();
+        int width, height;
+
+        SlikovniElement(Drawable d, float x, float y, float w) {
+            this.drawable = d;
+            this.width = d.getIntrinsicWidth();
+            this.height = d.getIntrinsicHeight();
+            float s = w / width;
+            matrix.postScale(s, s);
+            matrix.postTranslate(x, y);
         }
-        void draw(Canvas c) { c.drawBitmap(bitmap, matrix, null); }
+
+        void draw(Canvas c) {
+            c.save();
+            c.concat(matrix);
+            drawable.setBounds(0, 0, width, height);
+            drawable.draw(c);
+            c.restore();
+        }
+
         boolean contains(float x, float y) {
-            Matrix inv = new Matrix(); matrix.invert(inv);
-            float[] pts = {x, y}; inv.mapPoints(pts);
-            return pts[0] >= 0 && pts[0] <= bitmap.getWidth() && pts[1] >= 0 && pts[1] <= bitmap.getHeight();
+            Matrix inv = new Matrix();
+            matrix.invert(inv);
+            float[] pts = {x, y};
+            inv.mapPoints(pts);
+            return pts[0] >= 0 && pts[0] <= width && pts[1] >= 0 && pts[1] <= height;
         }
     }
 
     public void setPencilColor(int color) {
+        this.currentPencilColor = color;
         this.isDrawingEnabled = true;
         this.isEraserMode = false;
         this.izbranElement = null;
 
         paint.setXfermode(null);
-        paint.setColor(color);
-        paint.setStrokeWidth(10f);
+        paint.setColor(currentPencilColor);
+        paint.setStrokeWidth(currentPenSize);
         invalidate();
     }
 
@@ -318,7 +376,6 @@ public class NalepkaView extends View {
         if (getWidth() <= 0 || getHeight() <= 0) return null;
         Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(result);
-        // Ne narišemo ozadja, da ostane prosojno
         for (SlikovniElement el : elementi) {
             el.draw(canvas);
         }
@@ -326,5 +383,27 @@ public class NalepkaView extends View {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
         return result;
+    }
+
+    public void penSize1(){
+        currentPenSize = 10f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
+        invalidate();
+    }
+    public void penSize3(){
+        currentPenSize = 30f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
+        invalidate();
+    }
+    public void penSize5(){
+        currentPenSize = 50f;
+        if (isDrawingEnabled && !isEraserMode) {
+            paint.setStrokeWidth(currentPenSize);
+        }
+        invalidate();
     }
 }
