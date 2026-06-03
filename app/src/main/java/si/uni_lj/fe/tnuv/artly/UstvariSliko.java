@@ -43,7 +43,9 @@ public class UstvariSliko extends AppCompatActivity {
     private DrawingView drawingView;
     private RecyclerView elementRecyclerView;
     private ElementAdapter elementAdapter;
-    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack, btnExport, btnAlbum;
+    private ImageButton previousArrow, nextArrow, addUstvariNalepko, dodajSliko, btnPencil, btnEraser, btnReverse, btnRedo, btnTrash, btnBack, btnExport;
+
+    private Button btnAlbum;
     private Button btnShrani;
     private EditText vnosnoPolje;
     private List<String> vsiElementi;
