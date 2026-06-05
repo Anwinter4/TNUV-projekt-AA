@@ -47,6 +47,7 @@ public class UstvariNalepko extends AppCompatActivity {
     private Button btnShrani, btnPreklici;
     private List<String> vsiElementi;
     private View mColorPreview;
+
     private static final int PICK_IMAGE = 1;
 
     // this is the default color of the preview box
@@ -112,11 +113,16 @@ public class UstvariNalepko extends AppCompatActivity {
             drawingView.setEraserMode(true);
             Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
         });
+        // POSODOBLJEN GUMB ZA KOŠ
         btnTrash.setOnClickListener(v -> {
-            drawingView.clearAll();
-            Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
+            if (drawingView.hasSelection()) {
+                drawingView.deleteSelected();
+                Toast.makeText(this, "Element izbrisan", Toast.LENGTH_SHORT).show();
+            } else {
+                drawingView.clearAll();
+                Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
+            }
         });
-
         // Gumb za nazaj (Undo)
         btnReverse.setOnClickListener(v -> {
             drawingView.undo();

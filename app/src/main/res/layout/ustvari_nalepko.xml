@@ -190,6 +190,7 @@
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"/>
 
+
     </LinearLayout>
 
     <LinearLayout
@@ -217,5 +218,6 @@
             android:textSize="20sp"
             android:backgroundTint="#C06084"/>
     </LinearLayout>
+
 
 </LinearLayout>
