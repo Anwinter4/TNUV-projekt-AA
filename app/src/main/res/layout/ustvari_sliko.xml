@@ -36,26 +36,38 @@
     </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="320dp"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:layout_gravity="left"
+        >
 
-        <ImageButton
-            android:id="@+id/btnReverse"
-            android:src="@drawable/ic_reverse"
-            android:layout_height="match_parent"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_weight="1">
 
-        <ImageButton
-            android:id="@+id/btnRedo"
-            android:src="@drawable/ic_redo"
-            android:layout_height="match_parent"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:backgroundTint="@android:color/transparent"/>
+            <ImageButton
+                android:id="@+id/btnReverse"
+                android:src="@drawable/ic_reverse"
+                android:layout_height="50dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center"
+                android:backgroundTint="@android:color/transparent"/>
+
+            <ImageButton
+                android:id="@+id/btnRedo"
+                android:src="@drawable/ic_redo"
+                android:layout_height="50dp"
+                android:layout_width="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_gravity="center"
+                android:backgroundTint="@android:color/transparent"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout

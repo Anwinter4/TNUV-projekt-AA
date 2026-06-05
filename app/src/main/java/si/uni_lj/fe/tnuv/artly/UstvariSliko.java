@@ -1,6 +1,6 @@
 package si.uni_lj.fe.tnuv.artly;
 
-import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,16 +8,20 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -25,18 +29,20 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.List;
 
-import top.defaults.colorpicker.ColorPickerPopup;
-
-import android.content.ContentValues;
-import android.os.Build;
-import android.provider.MediaStore;
-import java.io.OutputStream;
+import top.defaults.colorpicker.ColorPickerView;
 
 public class UstvariSliko extends AppCompatActivity {
 
@@ -51,7 +57,6 @@ public class UstvariSliko extends AppCompatActivity {
     private List<String> vsiElementi;
     private View mColorPreview;
     private int mDefaultColor = Color.BLACK;
-
 
     private static final int PICK_IMAGE = 1;
 
@@ -91,6 +96,7 @@ public class UstvariSliko extends AppCompatActivity {
                 prikaziDialogZaIzhod();
             }
         });
+
         vsiElementi = BranjeElementov.getElementDrawables(this);
         elementRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -100,15 +106,30 @@ public class UstvariSliko extends AppCompatActivity {
 
         elementRecyclerView.setAdapter(elementAdapter);
 
-        // Preveri če urejamo obstoječo sliko
+        // NALAGANJE OBSTOJEČE SLIKE IN STANJA
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("imagePath")) {
             String path = intent.getStringExtra("imagePath");
             String name = intent.getStringExtra("imageName");
             if (path != null) {
-                Bitmap bitmap = BitmapFactory.decodeFile(path);
-                if (bitmap != null) {
-                    drawingView.post(() -> drawingView.setBackgroundBitmap(bitmap));
+                String statePath = path.substring(0, path.lastIndexOf(".")) + ".json";
+                File stateFile = new File(statePath);
+                
+                if (stateFile.exists()) {
+                    String json = preberiDatoteko(stateFile);
+                    if (json != null) {
+                        try {
+                            DrawingState state = new Gson().fromJson(json, DrawingState.class);
+                            drawingView.post(() -> drawingView.loadState(state));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            naloziSamoSliko(path);
+                        }
+                    } else {
+                        naloziSamoSliko(path);
+                    }
+                } else {
+                    naloziSamoSliko(path);
                 }
             }
             if (name != null) {
@@ -137,75 +158,102 @@ public class UstvariSliko extends AppCompatActivity {
             startActivityForResult(pickIntent, PICK_IMAGE);
         });
 
-        // Gumb za svinčnik - vklopi risanje
-        btnPencil.setOnClickListener(v -> {
-            drawingView.setDrawingEnabled(true);
-            Toast.makeText(this, "Pero vklopljeno", Toast.LENGTH_SHORT).show();
-        });
-
-        // Gumb za radirko - postopno brisanje (gradual eraser)
         btnEraser.setOnClickListener(v -> {
             drawingView.setEraserMode(true);
             Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
         });
 
-        btnPencil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                new ColorPickerPopup.Builder(UstvariSliko.this)
-                        .initialColor(mDefaultColor)
-                        .enableBrightness(true)
-                        .enableAlpha(true)
-                        .okTitle("V redu")
-                        .cancelTitle("Prekliči")
-                        .showIndicator(true)
-                        .showValue(true)
-                        .build()
-                        .show(v, new ColorPickerPopup.ColorPickerObserver() {
-                            @Override
-                            public void onColorPicked(int color) {
-                                mDefaultColor = color;
-                                mColorPreview.setBackgroundColor(mDefaultColor);
-                                drawingView.setPencilColor(mDefaultColor);
-                            }
-                        });
+        btnPencil.setOnClickListener(v -> {
+            drawingView.setEraserMode(false);
+
+            View popupView = LayoutInflater.from(UstvariSliko.this).inflate(R.layout.top_defaults_view_color_picker_popup, null);
+            androidx.appcompat.app.AlertDialog dialog = new AlertDialog.Builder(UstvariSliko.this)
+                    .setView(popupView)
+                    .create();
+
+            ColorPickerView colorPickerView = popupView.findViewById(R.id.colorPickerView);
+            colorPickerView.setInitialColor(mDefaultColor);
+
+            View colorIndicator = popupView.findViewById(R.id.colorIndicator);
+            if (colorIndicator != null) {
+                colorIndicator.setBackgroundColor(mDefaultColor);
+            }
+
+            colorPickerView.subscribe((color, fromUser, shouldPropagate) -> {
+                if (colorIndicator != null) {
+                    colorIndicator.setBackgroundColor(color);
+                }
+            });
+
+            TextView btnOk = popupView.findViewById(R.id.ok);
+            btnOk.setText("V redu");
+            btnOk.setOnClickListener(view -> {
+                mDefaultColor = colorPickerView.getColor();
+                mColorPreview.setBackgroundColor(mDefaultColor);
+                drawingView.setPencilColor(mDefaultColor);
+                dialog.dismiss();
+            });
+
+            TextView btnCancel = popupView.findViewById(R.id.cancel);
+            btnCancel.setText("Prekliči");
+            btnCancel.setOnClickListener(view -> dialog.dismiss());
+
+            popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
+                drawingView.penSize1();
+                Toast.makeText(UstvariSliko.this, "Debelina 1 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
+                drawingView.penSize3();
+                Toast.makeText(UstvariSliko.this, "Debelina 3 izbrana", Toast.LENGTH_SHORT).show();
+            });
+            popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
+                drawingView.penSize5();
+                Toast.makeText(UstvariSliko.this, "Debelina 5 izbrana", Toast.LENGTH_SHORT).show();
+            });
+
+            dialog.show();
+        });
+
+        btnTrash.setOnClickListener(v -> {
+            if (drawingView.hasSelection()) {
+                drawingView.deleteSelected();
+                Toast.makeText(this, "Element izbrisan", Toast.LENGTH_SHORT).show();
+            } else {
+                drawingView.clearAll();
+                Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Gumb za koš (Trash) - pobriše vse (risbo in nalepke)
-        btnTrash.setOnClickListener(v -> {
-            drawingView.clearAll();
-            Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
-        });
-
-        // Gumb za nazaj (Undo)
         btnReverse.setOnClickListener(v -> {
             drawingView.undo();
         });
 
-        // Gumb za naprej (Redo)
         btnRedo.setOnClickListener(v -> {
             drawingView.redo();
         });
+
+        drawingView.setOnStateChangeListener(() -> {
+            drawingView.greyUndo(btnReverse);
+            drawingView.greyRedo(btnRedo);
+        });
+
+        drawingView.greyUndo(btnReverse);
+        drawingView.greyRedo(btnRedo);
 
         btnBack.setOnClickListener(v -> prikaziDialogZaIzhod());
 
         btnShrani.setOnClickListener(v -> {
             if(!vnosnoPolje.getText().toString().isEmpty()) {
-                // Shrani
                 shraniSliko(vnosnoPolje.getText().toString());
             } else {
-                // EditText is empty - show error or handle it
                 Toast.makeText(this, "Vnosno polje ne sme biti prazno!", Toast.LENGTH_SHORT).show();
             }
-
-
         });
 
         btnExport.setOnClickListener(v -> exportajSliko());
 
         btnAlbum.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Pojdi v album")
                     .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
                     .setPositiveButton("OK", (dialogInterface, i) -> {
@@ -214,20 +262,39 @@ public class UstvariSliko extends AppCompatActivity {
                     })
                     .setNegativeButton("Prekliči", null)
                     .show();
-
-
         });
-
 
         posodobiGumbe();
     }
 
+    private void naloziSamoSliko(String path) {
+        Bitmap bitmap = BitmapFactory.decodeFile(path);
+        if (bitmap != null) {
+            drawingView.post(() -> drawingView.setBackgroundBitmap(bitmap));
+        }
+    }
+
+    private String preberiDatoteko(File file) {
+        StringBuilder text = new StringBuilder();
+        try (FileInputStream fis = new FileInputStream(file);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                text.append(line);
+                text.append('\n');
+            }
+            return text.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private void prikaziDialogZaIzhod() {
-        new AlertDialog.Builder(this)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle("Vrni na domačo stran")
                 .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
                 .setPositiveButton("OK", (dialogInterface, i) -> {
-                    // Tukaj dejansko zapremo aktivnost
                     finish();
                 })
                 .setNegativeButton("Prekliči", null)
@@ -241,7 +308,6 @@ public class UstvariSliko extends AppCompatActivity {
             return;
         }
 
-        // Shranimo v mapo 'album' znotraj internih datotek aplikacije
         File directory = new File(getFilesDir(), "album");
         if (!directory.exists()) {
             directory.mkdirs();
@@ -250,17 +316,27 @@ public class UstvariSliko extends AppCompatActivity {
         File file = new File(directory, imeSlike + ".png");
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            Toast.makeText(this, "Slika '" + imeSlike + "' shranjena!", Toast.LENGTH_SHORT).show();
-
-            // Po shranjevanju počistimo polje in platno (opcijsko)
-            vnosnoPolje.setText("");
-            drawingView.clearAll();
-            // Vrni se nazaj v Album
-            finish();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Napaka pri shranjevanju datoteke", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Napaka pri shranjevanju PNG", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        DrawingState state = drawingView.getState();
+        String json = new Gson().toJson(state);
+        File stateFile = new File(directory, imeSlike + ".json");
+        try (FileWriter writer = new FileWriter(stateFile)) {
+            writer.write(json);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Napaka pri shranjevanju stanja", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Slika '" + imeSlike + "' shranjena!", Toast.LENGTH_SHORT).show();
+        vnosnoPolje.setText("");
+        drawingView.clearAll();
+        finish();
     }
 
     public void exportajSliko() {
@@ -270,38 +346,30 @@ public class UstvariSliko extends AppCompatActivity {
             return;
         }
 
-        // 1. Preberi ime iz vnosnega polja
         String vnesenoIme = vnosnoPolje.getText().toString().trim();
         String imeDatoteke;
 
-        // Če je polje prazno, uporabi privzeto ime, sicer vneseno.
-        // Dodamo milisekunde (System.currentTimeMillis()), da preprečimo prepisovanje datotek z istim imenom.
         if (vnesenoIme.isEmpty()) {
             imeDatoteke = "Artly_slika_" + System.currentTimeMillis() + ".png";
         } else {
             imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + ".png";
         }
 
-        // 2. Priprava metapodatkov za galerijo (MediaStore)
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
 
-        // Za Android 10 (API 29) in novejše ustvarimo mapo "Pictures/Artly"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Artly");
             values.put(MediaStore.Images.Media.IS_PENDING, 1);
         }
 
-        // Vstavimo zapis v sistemsko bazo slik
         Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
         if (uri != null) {
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
-                // Dejansko shranjevanje bitmape v izhodni tok (stream)
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
 
-                // Končamo postopek in sprostimo datoteko za druge aplikacije (samo za Android 10+)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     values.clear();
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
@@ -355,8 +423,6 @@ public class UstvariSliko extends AppCompatActivity {
         }
     }
 
-
-
     private Bitmap rotateImageIfRequired(Bitmap img, Uri selectedImage) throws IOException {
         InputStream input = getContentResolver().openInputStream(selectedImage);
         ExifInterface ei;
@@ -389,15 +455,7 @@ public class UstvariSliko extends AppCompatActivity {
         return rotatedImg;
     }
 
-    private void setupColorClick(View popupView, int viewId, int color, PopupWindow popupWindow) {
-        View colorView = popupView.findViewById(viewId);
-        if (colorView != null) {
-            colorView.setOnClickListener(v -> {
-                drawingView.setPencilColor(color);
-                popupWindow.dismiss();
-            });
-        }
-    }
+
 
     private void posodobiGumbe() {
         if (elementAdapter != null) {
@@ -409,4 +467,3 @@ public class UstvariSliko extends AppCompatActivity {
         }
     }
 }
-

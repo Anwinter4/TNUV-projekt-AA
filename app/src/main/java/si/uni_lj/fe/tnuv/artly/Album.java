@@ -54,13 +54,11 @@ public class Album extends AppCompatActivity {
             return insets;
         });
 
-        //klici
         slikaRecyclerView = findViewById(R.id.slikaRecyclerView);
         btnBack = findViewById(R.id.btnBack);
         txtAlbumPrazen = findViewById(R.id.txtAlbumPrazen);
 
         btnBack.setOnClickListener(v -> finish());
-
         slikaRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
         osveziAlbum();
@@ -68,7 +66,8 @@ public class Album extends AppCompatActivity {
 
     private void osveziAlbum() {
         File directory = new File(getFilesDir(), "album");
-        File[] files = directory.listFiles();
+        // Prikažemo le .png datoteke
+        File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
         List<File> listSlik = new ArrayList<>();
 
         if (files != null && files.length > 0) {
@@ -85,19 +84,15 @@ public class Album extends AppCompatActivity {
         slikaRecyclerView.setAdapter(albumAdapter);
     }
 
-
-
     private void prikaziPopup(File file) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.album_popup);
         
-        // Nastavimo ozadje dialoga na prozorno, da vidimo zaobljene robove in dimming
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            // Dimming effect
             WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
-            lp.dimAmount = 0.5f; // 50% darker
+            lp.dimAmount = 0.5f;
             dialog.getWindow().setAttributes(lp);
             dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         }
@@ -108,20 +103,16 @@ public class Album extends AppCompatActivity {
         ImageButton btnIzbrisiSliko = dialog.findViewById(R.id.btnIzbrisiSliko);
         ImageButton btnExport = dialog.findViewById(R.id.btnIzvoziSliko);
 
-        // Nastavi ime
         String fileName = file.getName();
         if (fileName.indexOf(".") > 0) {
             fileName = fileName.substring(0, fileName.lastIndexOf("."));
         }
         popupNaslov.setText(fileName);
 
-        // Naloži sliko
         Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
         popupSlika.setImageBitmap(bitmap);
 
-        // Gumb Uredi Sliko
         btnUrediSliko.setOnClickListener(v -> {
-            // Odpremo sliko v UstvariSliko (ki služi tudi kot urejevalnik)
             Intent intent = new Intent(Album.this, UstvariSliko.class);
             intent.putExtra("imagePath", file.getAbsolutePath());
             intent.putExtra("imageName", popupNaslov.getText().toString());
@@ -129,13 +120,22 @@ public class Album extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        // Gumb Izbriši Sliko
         btnIzbrisiSliko.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Izbriši sliko")
                     .setMessage("Ali ste prepričani, da želite trajno izbrisati to sliko?")
                     .setPositiveButton("OK", (dialogInterface, i) -> {
-                        if (file.delete()) {
+                        // Izbriši PNG
+                        boolean deletedPng = file.delete();
+                        
+                        // Poskusi izbrisati še pripadajoči JSON
+                        String statePath = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".")) + ".json";
+                        File stateFile = new File(statePath);
+                        if (stateFile.exists()) {
+                            stateFile.delete();
+                        }
+
+                        if (deletedPng) {
                             Toast.makeText(Album.this, "Slika izbrisana", Toast.LENGTH_SHORT).show();
                             osveziAlbum();
                             dialog.dismiss();
@@ -148,10 +148,7 @@ public class Album extends AppCompatActivity {
         });
 
         btnExport.setOnClickListener(v -> exportajSliko(bitmap, popupNaslov.getText().toString()));
-
-        // Zapri ob kliku izven
         dialog.setCanceledOnTouchOutside(true);
-
         dialog.show();
     }
 
@@ -178,13 +175,11 @@ public class Album extends AppCompatActivity {
         if (uri != null) {
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     values.clear();
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
                     getContentResolver().update(uri, values, null, null);
                 }
-
                 Toast.makeText(this, "Slika uspešno izvožena v album Artly!", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();

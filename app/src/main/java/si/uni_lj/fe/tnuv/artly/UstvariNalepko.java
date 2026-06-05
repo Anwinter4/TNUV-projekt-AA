@@ -1,5 +1,6 @@
 package si.uni_lj.fe.tnuv.artly;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,7 +9,9 @@ import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +34,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,7 +47,7 @@ public class UstvariNalepko extends AppCompatActivity {
     private ElementAdapter elementAdapter;
     private ImageButton previousArrow, nextArrow;
     private ImageButton btnReverse, btnRedo;
-    private ImageButton btnEraser, btnPencil, dodajSliko, btnTrash, btnBack;
+    private ImageButton btnEraser, btnPencil, dodajSliko, btnTrash, btnBack,btnExport;
     private Button btnShrani, btnPreklici;
     private List<String> vsiElementi;
     private View mColorPreview;
@@ -75,7 +79,8 @@ public class UstvariNalepko extends AppCompatActivity {
         btnPencil = findViewById(R.id.btnPencil);
         dodajSliko = findViewById(R.id.btnPlus);
         btnTrash = findViewById(R.id.btnTrash);
-        
+        btnExport = findViewById(R.id.btnExport);
+
         btnShrani = findViewById(R.id.btnShrani);
         btnPreklici = findViewById(R.id.btnPreklici);
 
@@ -123,6 +128,7 @@ public class UstvariNalepko extends AppCompatActivity {
                 Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
             }
         });
+        btnExport.setOnClickListener(v -> exportajNalepko());
         // Gumb za nazaj (Undo)
         btnReverse.setOnClickListener(v -> {
             drawingView.undo();
@@ -288,6 +294,43 @@ public class UstvariNalepko extends AppCompatActivity {
         Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
         img.recycle();
         return rotatedImg;
+    }
+    public void exportajNalepko() {
+        Bitmap bitmap = drawingView.getFinalBitmap();
+        if (bitmap == null) {
+            Toast.makeText(this, "Napaka pri generiranju nalepke", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String imeDatoteke = "Artly_nalepka_" + System.currentTimeMillis() + ".png";
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Artly");
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        if (uri != null) {
+            try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    getContentResolver().update(uri, values, null, null);
+                }
+
+                Toast.makeText(this, "Nalepka uspešno izvožena v galerijo (Pictures/Artly)!", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Napaka pri izvozu nalepke", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void posodobiGumbe() {

@@ -12,7 +12,6 @@ import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -79,6 +78,7 @@ public class NalepkaView extends View {
             public boolean onScale(ScaleGestureDetector detector) {
                 if (izbranElement != null && !isDrawingEnabled) {
                     izbranElement.matrix.postScale(detector.getScaleFactor(), detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
+                    rebuildEverything(); // Osveži bitmap med skaliranjem
                     invalidate();
                     return true;
                 }
@@ -128,12 +128,10 @@ public class NalepkaView extends View {
         }
     }
 
-    // Dodaj ti dve metodi:
     public boolean hasSelection() {
         return izbranElement != null;
     }
 
-    // Metoda za brisanje trenutno izbrane nalepke
     public void deleteSelected() {
         if (izbranElement != null) {
             undoStack.add(new RemoveElementAction(izbranElement));
@@ -205,26 +203,27 @@ public class NalepkaView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        // 1. Ozadje
         if (backgroundBitmap != null) {
             srcRect.set(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
             dstRect.set(0, 0, getWidth(), getHeight());
             canvas.drawBitmap(backgroundBitmap, srcRect, dstRect, null);
         } else {
-            canvas.drawColor(Color.WHITE);
+            canvas.drawColor(Color.TRANSPARENT);
         }
 
-        for (SlikovniElement el : elementi) {
-            el.draw(canvas);
-            // Če je nalepka izbrana, nariši okvirček
-            if (el == izbranElement) {
-                el.drawSelectionFrame(canvas, selectionPaint);
-            }
-        }
-
+        // 2. IZRIS VSEGA (Nalepke in svinčnik so zdaj v drawingBitmap v pravilnem vrstnem redu)
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
 
+        // 3. Okvirček za izbrano nalepko (narišemo na vrhu, da se vidi med premikanjem)
+        if (izbranElement != null) {
+            izbranElement.drawSelectionFrame(canvas, selectionPaint);
+        }
+
+        // 4. Trenutna linija, ki jo ravno rišemo (še ni v stacku)
         if (isDrawingEnabled && !isEraserMode) {
             canvas.drawPath(path, paint);
         }
@@ -244,6 +243,7 @@ public class NalepkaView extends View {
                 float deltaAngle = angle - lastRotationAngle;
                 izbranElement.matrix.postRotate(deltaAngle, getMidX(event), getMidY(event));
                 lastRotationAngle = angle;
+                rebuildEverything(); // Osveži ob rotaciji
             }
             invalidate();
             return true;
@@ -259,8 +259,8 @@ public class NalepkaView extends View {
                     if (elementi.get(i).contains(x, y)) {
                         najdenElement = elementi.get(i);
                         startMatrix.set(najdenElement.matrix);
-                        elementi.remove(i);
-                        elementi.add(najdenElement);
+                        moveElementActionToFront(najdenElement);
+                        rebuildEverything(); // Takoj premakni na vrh tudi v bitmapu
                         isDrawingEnabled = false;
                         break;
                     }
@@ -277,6 +277,7 @@ public class NalepkaView extends View {
             case MotionEvent.ACTION_MOVE:
                 if (izbranElement != null && !isDrawingEnabled) {
                     izbranElement.matrix.postTranslate(x - lastX, y - lastY);
+                    rebuildEverything(); // Osveži med premikanjem nalepke
                 } else if (isDrawingEnabled) {
                     path.quadTo(lastX, lastY, (x + lastX) / 2, (y + lastY) / 2);
                     if (isEraserMode && canvas != null) {
@@ -291,6 +292,7 @@ public class NalepkaView extends View {
                 if (izbranElement != null && !isDrawingEnabled) {
                     if (!isPointInView(x, y)) {
                         izbranElement.matrix.set(startMatrix);
+                        rebuildEverything();
                     }
                 } else if (izbranElement == null && isDrawingEnabled) {
                     path.lineTo(x, y);
@@ -312,6 +314,20 @@ public class NalepkaView extends View {
     // Preveri če je prst še vedno znotraj belega platna
     private boolean isPointInView(float x, float y) {
         return (x >= 0 && x <= getWidth() && y >= 0 && y <= getHeight());
+    }
+
+    private void moveElementActionToFront(SlikovniElement element) {
+        Action found = null;
+        for (int i = 0; i < undoStack.size(); i++) {
+            Action a = undoStack.get(i);
+            if (a instanceof ElementAction && ((ElementAction) a).element == element) {
+                found = undoStack.remove(i);
+                break;
+            }
+        }
+        if (found != null) {
+            undoStack.add(found);
+        }
     }
     private float getAngle(MotionEvent event) {
         double dx = event.getX(0) - event.getX(1);
@@ -375,7 +391,10 @@ public class NalepkaView extends View {
     private static class ElementAction implements NalepkaView.Action {
         SlikovniElement element;
         ElementAction(SlikovniElement el) { this.element = el; }
-        public void perform(Canvas c, List<SlikovniElement> e) { e.add(element); }
+        public void perform(Canvas c, List<SlikovniElement> e) {
+            e.add(element);
+            element.draw(c); // Nalepka se zdaj nariše v bitmap
+        }
     }
 
     private static class RemoveElementAction implements NalepkaView.Action {
@@ -450,9 +469,7 @@ public class NalepkaView extends View {
         if (getWidth() <= 0 || getHeight() <= 0) return null;
         Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(result);
-        for (SlikovniElement el : elementi) {
-            el.draw(canvas);
-        }
+        canvas.drawColor(Color.TRANSPARENT);
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
@@ -461,20 +478,18 @@ public class NalepkaView extends View {
 
     public void penSize1(){
         currentPenSize = 10f;
-        if (isDrawingEnabled && !isEraserMode) {
-            paint.setStrokeWidth(currentPenSize);
-        }
-        invalidate();
+        updatePaint();
     }
     public void penSize3(){
         currentPenSize = 30f;
-        if (isDrawingEnabled && !isEraserMode) {
-            paint.setStrokeWidth(currentPenSize);
-        }
-        invalidate();
+        updatePaint();
     }
     public void penSize5(){
         currentPenSize = 50f;
+        updatePaint();
+    }
+
+    private void updatePaint() {
         if (isDrawingEnabled && !isEraserMode) {
             paint.setStrokeWidth(currentPenSize);
         }
