@@ -29,6 +29,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -106,13 +107,12 @@ public class UstvariSliko extends AppCompatActivity {
 
         elementRecyclerView.setAdapter(elementAdapter);
 
-        // NALAGANJE OBSTOJEČE SLIKE IN STANJA
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("imagePath")) {
             String path = intent.getStringExtra("imagePath");
             String name = intent.getStringExtra("imageName");
             if (path != null) {
-                String statePath = path.substring(0, path.lastIndexOf(".")) + ".json";
+                String statePath = path.substring(0, path.lastIndexOf(".")) + R.string.koncnica_json;
                 File stateFile = new File(statePath);
                 
                 if (stateFile.exists()) {
@@ -160,7 +160,7 @@ public class UstvariSliko extends AppCompatActivity {
 
         btnEraser.setOnClickListener(v -> {
             drawingView.setEraserMode(true);
-            Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.radirka_vklopljena, Toast.LENGTH_SHORT).show();
         });
 
         btnPencil.setOnClickListener(v -> {
@@ -186,7 +186,7 @@ public class UstvariSliko extends AppCompatActivity {
             });
 
             TextView btnOk = popupView.findViewById(R.id.ok);
-            btnOk.setText("V redu");
+            btnOk.setText(R.string.ok);
             btnOk.setOnClickListener(view -> {
                 mDefaultColor = colorPickerView.getColor();
                 mColorPreview.setBackgroundColor(mDefaultColor);
@@ -195,20 +195,20 @@ public class UstvariSliko extends AppCompatActivity {
             });
 
             TextView btnCancel = popupView.findViewById(R.id.cancel);
-            btnCancel.setText("Prekliči");
+            btnCancel.setText(R.string.preklici);
             btnCancel.setOnClickListener(view -> dialog.dismiss());
 
             popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
                 drawingView.penSize1();
-                Toast.makeText(UstvariSliko.this, "Debelina 1 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariSliko.this, R.string.tanka_crta, Toast.LENGTH_SHORT).show();
             });
             popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
                 drawingView.penSize3();
-                Toast.makeText(UstvariSliko.this, "Debelina 3 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariSliko.this, R.string.navadna_crta, Toast.LENGTH_SHORT).show();
             });
             popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
                 drawingView.penSize5();
-                Toast.makeText(UstvariSliko.this, "Debelina 5 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariSliko.this, R.string.debela_crta, Toast.LENGTH_SHORT).show();
             });
 
             dialog.show();
@@ -217,10 +217,10 @@ public class UstvariSliko extends AppCompatActivity {
         btnTrash.setOnClickListener(v -> {
             if (drawingView.hasSelection()) {
                 drawingView.deleteSelected();
-                Toast.makeText(this, "Element izbrisan", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.element_izbrisan, Toast.LENGTH_SHORT).show();
             } else {
                 drawingView.clearAll();
-                Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.platno_ociseno, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -246,21 +246,21 @@ public class UstvariSliko extends AppCompatActivity {
             if(!vnosnoPolje.getText().toString().isEmpty()) {
                 shraniSliko(vnosnoPolje.getText().toString());
             } else {
-                Toast.makeText(this, "Vnosno polje ne sme biti prazno!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.opozorilo_prazno_vnosno_polje, Toast.LENGTH_SHORT).show();
             }
         });
 
         btnExport.setOnClickListener(v -> exportajSliko());
 
         btnAlbum.setOnClickListener(v -> {
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setTitle("Pojdi v album")
-                    .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
-                    .setPositiveButton("OK", (dialogInterface, i) -> {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.pojdi_v_album)
+                    .setMessage(R.string.preveri_pred_zapustitvijo_strani)
+                    .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                         Intent nextIntent = new Intent(UstvariSliko.this, Album.class);
                         startActivity(nextIntent);
                     })
-                    .setNegativeButton("Prekliči", null)
+                    .setNegativeButton(R.string.preklici, null)
                     .show();
         });
 
@@ -291,20 +291,20 @@ public class UstvariSliko extends AppCompatActivity {
     }
 
     private void prikaziDialogZaIzhod() {
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle("Vrni na domačo stran")
-                .setMessage("Ali ste prepričani, da želite zapustiti stran brez da bi shranili?")
-                .setPositiveButton("OK", (dialogInterface, i) -> {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.vrni_na_domaco_stran)
+                .setMessage(R.string.preveri_pred_zapustitvijo_strani)
+                .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                     finish();
                 })
-                .setNegativeButton("Prekliči", null)
+                .setNegativeButton(R.string.preklici, null)
                 .show();
     }
 
     private void shraniSliko(String imeSlike) {
         Bitmap bitmap = drawingView.getFinalBitmap();
         if (bitmap == null) {
-            Toast.makeText(this, "Napaka pri generiranju slike", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_pri_generiranju_slike, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -313,27 +313,27 @@ public class UstvariSliko extends AppCompatActivity {
             directory.mkdirs();
         }
 
-        File file = new File(directory, imeSlike + ".png");
+        File file = new File(directory, imeSlike + R.string.koncnica_png);
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Napaka pri shranjevanju PNG", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_shrani_png, Toast.LENGTH_SHORT).show();
             return;
         }
 
         DrawingState state = drawingView.getState();
         String json = new Gson().toJson(state);
-        File stateFile = new File(directory, imeSlike + ".json");
+        File stateFile = new File(directory, imeSlike + R.string.koncnica_json);
         try (FileWriter writer = new FileWriter(stateFile)) {
             writer.write(json);
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Napaka pri shranjevanju stanja", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_shrani_stanje, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(this, "Slika '" + imeSlike + "' shranjena!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.slika_imeSlike) + imeSlike + getString(R.string.imeSlike_shranjena), Toast.LENGTH_SHORT).show();
         vnosnoPolje.setText("");
         drawingView.clearAll();
         finish();
@@ -342,7 +342,7 @@ public class UstvariSliko extends AppCompatActivity {
     public void exportajSliko() {
         Bitmap bitmap = drawingView.getFinalBitmap();
         if (bitmap == null) {
-            Toast.makeText(this, "Napaka pri generiranju slike", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_pri_generiranju_slike, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -350,9 +350,9 @@ public class UstvariSliko extends AppCompatActivity {
         String imeDatoteke;
 
         if (vnesenoIme.isEmpty()) {
-            imeDatoteke = "Artly_slika_" + System.currentTimeMillis() + ".png";
+            imeDatoteke = getString(R.string.artly_slika) + System.currentTimeMillis() + R.string.koncnica_png;
         } else {
-            imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + ".png";
+            imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + R.string.koncnica_png;
         }
 
         ContentValues values = new ContentValues();
@@ -376,10 +376,10 @@ public class UstvariSliko extends AppCompatActivity {
                     getContentResolver().update(uri, values, null, null);
                 }
 
-                Toast.makeText(this, "Slika uspešno izvožena v galerijo (Pictures/Artly)!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.uspeh_shranjena_slika, Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Napaka pri izvozu slike", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.napaka_izvoz_slike, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -418,7 +418,7 @@ public class UstvariSliko extends AppCompatActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Napaka pri nalaganju slike", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.napaka_nalaganje_slike, Toast.LENGTH_SHORT).show();
             }
         }
     }

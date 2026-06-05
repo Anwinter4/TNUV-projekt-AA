@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BranjeElementov {
 
-    // Vrne seznam imen vseh drawable-jev in poti do shranjenih elementov
+    // Vrne seznam imen vseh drawable in poti do shranjenih elementov
     public static List<String> getElementDrawables(Context context) {
         List<String> elementNames = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class BranjeElementov {
             }
         }
 
-        Log.d("Element names: ", elementNames.toString());
+        //Log.d("Imena elementov: ", elementNames.toString());
         return elementNames;
     }
 }

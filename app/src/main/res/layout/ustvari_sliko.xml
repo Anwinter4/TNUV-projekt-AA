@@ -21,13 +21,14 @@
             android:layout_height="50dp"
             android:layout_width="50dp"
             android:layout_weight="0"
-            android:backgroundTint="@android:color/transparent"/>
+            android:backgroundTint="@android:color/transparent"
+            android:contentDescription="@string/nazaj"/>
 
         <EditText
             android:layout_width="300dp"
             android:layout_height="40dp"
             android:padding="5dp"
-            android:hint="Vnesi ime slike..."
+            android:hint="@string/vnesi_ime_slike"
             android:maxLength="15"
             android:inputType="text"
             android:id="@+id/vnosno_polje"
@@ -77,7 +78,6 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <!-- ODSTRANJEN NestedScrollView za boljšo odzivnost -->
         <FrameLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -203,7 +203,7 @@
             android:id="@+id/btnAlbum"
             android:layout_width="150dp"
             android:layout_height="60dp"
-            android:text="Album"
+            android:text="@string/gumb_album"
             android:textSize="20sp"
             android:backgroundTint="#C06084"
             android:layout_marginEnd="16dp" />
@@ -212,7 +212,7 @@
             android:id="@+id/btnShrani"
             android:layout_width="150dp"
             android:layout_height="60dp"
-            android:text="Shrani"
+            android:text="@string/shrani"
             android:textSize="20sp"
             android:backgroundTint="#C06084"/>
     </LinearLayout>

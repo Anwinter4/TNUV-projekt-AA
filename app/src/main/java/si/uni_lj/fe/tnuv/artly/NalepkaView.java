@@ -28,7 +28,7 @@ import java.util.List;
 public class NalepkaView extends View {
 
     private Paint paint;
-    private Paint selectionPaint; // Čopič za okvirček izbire
+    private Paint selectionPaint; // Čopič za okno izbire
     private Path path;
     private Canvas canvas;
     private Bitmap drawingBitmap;
@@ -78,7 +78,7 @@ public class NalepkaView extends View {
             public boolean onScale(ScaleGestureDetector detector) {
                 if (izbranElement != null && !isDrawingEnabled) {
                     izbranElement.matrix.postScale(detector.getScaleFactor(), detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
-                    rebuildEverything(); // Osveži bitmap med skaliranjem
+                    rebuildEverything();
                     invalidate();
                     return true;
                 }
@@ -99,7 +99,7 @@ public class NalepkaView extends View {
 
     public void setEraserMode(boolean eraser) {
         this.isEraserMode = eraser;
-        this.isDrawingEnabled = true; // Both pencil and eraser use drawing mode
+        this.isDrawingEnabled = true;
         if (eraser) {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             paint.setStrokeWidth(60f);
@@ -204,7 +204,6 @@ public class NalepkaView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // 1. Ozadje
         if (backgroundBitmap != null) {
             srcRect.set(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
             dstRect.set(0, 0, getWidth(), getHeight());
@@ -213,17 +212,14 @@ public class NalepkaView extends View {
             canvas.drawColor(Color.TRANSPARENT);
         }
 
-        // 2. IZRIS VSEGA (Nalepke in svinčnik so zdaj v drawingBitmap v pravilnem vrstnem redu)
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
 
-        // 3. Okvirček za izbrano nalepko (narišemo na vrhu, da se vidi med premikanjem)
         if (izbranElement != null) {
             izbranElement.drawSelectionFrame(canvas, selectionPaint);
         }
 
-        // 4. Trenutna linija, ki jo ravno rišemo (še ni v stacku)
         if (isDrawingEnabled && !isEraserMode) {
             canvas.drawPath(path, paint);
         }
@@ -243,7 +239,7 @@ public class NalepkaView extends View {
                 float deltaAngle = angle - lastRotationAngle;
                 izbranElement.matrix.postRotate(deltaAngle, getMidX(event), getMidY(event));
                 lastRotationAngle = angle;
-                rebuildEverything(); // Osveži ob rotaciji
+                rebuildEverything();
             }
             invalidate();
             return true;
@@ -260,7 +256,7 @@ public class NalepkaView extends View {
                         najdenElement = elementi.get(i);
                         startMatrix.set(najdenElement.matrix);
                         moveElementActionToFront(najdenElement);
-                        rebuildEverything(); // Takoj premakni na vrh tudi v bitmapu
+                        rebuildEverything();
                         isDrawingEnabled = false;
                         break;
                     }
@@ -277,7 +273,7 @@ public class NalepkaView extends View {
             case MotionEvent.ACTION_MOVE:
                 if (izbranElement != null && !isDrawingEnabled) {
                     izbranElement.matrix.postTranslate(x - lastX, y - lastY);
-                    rebuildEverything(); // Osveži med premikanjem nalepke
+                    rebuildEverything();
                 } else if (isDrawingEnabled) {
                     path.quadTo(lastX, lastY, (x + lastX) / 2, (y + lastY) / 2);
                     if (isEraserMode && canvas != null) {
@@ -311,7 +307,6 @@ public class NalepkaView extends View {
     }
 
 
-    // Preveri če je prst še vedno znotraj belega platna
     private boolean isPointInView(float x, float y) {
         return (x >= 0 && x <= getWidth() && y >= 0 && y <= getHeight());
     }
@@ -364,19 +359,6 @@ public class NalepkaView extends View {
         }
     }
 
-    public void addElement(String identifier) {
-        if (identifier.startsWith("/")) {
-            Bitmap b = BitmapFactory.decodeFile(identifier);
-            if (b != null) {
-                dodajSliko(b);
-            }
-        } else {
-            int resId = getContext().getResources().getIdentifier(identifier, "drawable", getContext().getPackageName());
-            if (resId != 0) {
-                addSvgElement(resId);
-            }
-        }
-    }
 
     private interface Action {
         void perform(Canvas drawingCanvas, List<SlikovniElement> elements);
@@ -393,7 +375,7 @@ public class NalepkaView extends View {
         ElementAction(SlikovniElement el) { this.element = el; }
         public void perform(Canvas c, List<SlikovniElement> e) {
             e.add(element);
-            element.draw(c); // Nalepka se zdaj nariše v bitmap
+            element.draw(c);
         }
     }
 
@@ -438,8 +420,8 @@ public class NalepkaView extends View {
             c.drawPath(framePath, p);
 
             p.setStyle(Paint.Style.FILL);
-            c.drawCircle(pts[0], pts[1], 15f, p); // Zgoraj levo
-            c.drawCircle(pts[4], pts[5], 15f, p); // Spodaj desno
+            c.drawCircle(pts[0], pts[1], 15f, p);
+            c.drawCircle(pts[4], pts[5], 15f, p);
             p.setStyle(Paint.Style.STROKE);
 
         }

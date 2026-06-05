@@ -47,14 +47,13 @@ public class UstvariNalepko extends AppCompatActivity {
     private ElementAdapter elementAdapter;
     private ImageButton previousArrow, nextArrow;
     private ImageButton btnReverse, btnRedo;
-    private ImageButton btnEraser, btnPencil, dodajSliko, btnTrash, btnBack,btnExport;
+    private ImageButton btnEraser, btnPencil, dodajSliko, btnTrash,btnExport;
     private Button btnShrani, btnPreklici;
     private List<String> vsiElementi;
     private View mColorPreview;
 
     private static final int PICK_IMAGE = 1;
 
-    // this is the default color of the preview box
     private int mDefaultColor = Color.BLACK;
 
     @Override
@@ -88,7 +87,6 @@ public class UstvariNalepko extends AppCompatActivity {
 
         vsiElementi = BranjeElementov.getElementDrawables(this);
 
-        // Setup RecyclerView with a vertical layout
         elementRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         elementAdapter = new ElementAdapter(vsiElementi, identifier -> {
@@ -116,25 +114,24 @@ public class UstvariNalepko extends AppCompatActivity {
 
         btnEraser.setOnClickListener(v -> {
             drawingView.setEraserMode(true);
-            Toast.makeText(this, "Radirka vklopljena", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.radirka_vklopljena, Toast.LENGTH_SHORT).show();
         });
+
         // POSODOBLJEN GUMB ZA KOŠ
         btnTrash.setOnClickListener(v -> {
             if (drawingView.hasSelection()) {
                 drawingView.deleteSelected();
-                Toast.makeText(this, "Element izbrisan", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.element_izbrisan, Toast.LENGTH_SHORT).show();
             } else {
                 drawingView.clearAll();
-                Toast.makeText(this, "Platno očiščeno", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.platno_ociseno, Toast.LENGTH_SHORT).show();
             }
         });
         btnExport.setOnClickListener(v -> exportajNalepko());
-        // Gumb za nazaj (Undo)
         btnReverse.setOnClickListener(v -> {
             drawingView.undo();
         });
 
-        // Gumb za naprej (Redo)
         btnRedo.setOnClickListener(v -> {
             drawingView.redo();
         });
@@ -144,7 +141,6 @@ public class UstvariNalepko extends AppCompatActivity {
             drawingView.greyRedo(btnRedo);
         });
 
-        // Pokličite še ročno na začetku, da nastavite začetno stanje (oba siva)
         drawingView.greyUndo(btnReverse);
         drawingView.greyRedo(btnRedo);
 
@@ -171,7 +167,7 @@ public class UstvariNalepko extends AppCompatActivity {
             });
 
             TextView btnOk = popupView.findViewById(R.id.ok);
-            btnOk.setText("V redu");
+            btnOk.setText(R.string.ok);
             btnOk.setOnClickListener(view -> {
                 mDefaultColor = colorPickerView.getColor();
                 mColorPreview.setBackgroundColor(mDefaultColor);
@@ -180,20 +176,20 @@ public class UstvariNalepko extends AppCompatActivity {
             });
 
             TextView btnCancel = popupView.findViewById(R.id.cancel);
-            btnCancel.setText("Prekliči");
+            btnCancel.setText(R.string.preklici);
             btnCancel.setOnClickListener(view -> dialog.dismiss());
 
             popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
                 drawingView.penSize1();
-                Toast.makeText(UstvariNalepko.this, "Debelina 1 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariNalepko.this, R.string.tanka_crta, Toast.LENGTH_SHORT).show();
             });
             popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
                 drawingView.penSize3();
-                Toast.makeText(UstvariNalepko.this, "Debelina 3 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariNalepko.this, R.string.navadna_crta, Toast.LENGTH_SHORT).show();
             });
             popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
                 drawingView.penSize5();
-                Toast.makeText(UstvariNalepko.this, "Debelina 5 izbrana", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UstvariNalepko.this, R.string.debela_crta, Toast.LENGTH_SHORT).show();
             });
 
             dialog.show();
@@ -211,12 +207,12 @@ public class UstvariNalepko extends AppCompatActivity {
     private void shraniNalepko() {
         Bitmap bitmap = drawingView.getFinalBitmap();
         if (bitmap == null) {
-            Toast.makeText(this, "Napaka pri shranjevanju", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_shranjevanje, Toast.LENGTH_SHORT).show();
             return;
         }
 
         String uniqueName = UUID.randomUUID().toString().substring(0, 8);
-        String fileName = "element_13_" + uniqueName + ".png";
+        String fileName = "element_13_" + uniqueName + R.string.koncnica_png;
         
         File directory = new File(getFilesDir(), "custom_elements");
         if (!directory.exists()) {
@@ -226,7 +222,7 @@ public class UstvariNalepko extends AppCompatActivity {
         File file = new File(directory, fileName);
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            Toast.makeText(this, "Nalepka shranjena", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.nalepka_shranjena, Toast.LENGTH_SHORT).show();
             posodobiGumbe();
             
             Intent intent = new Intent(UstvariNalepko.this, UstvariSliko.class);
@@ -235,7 +231,7 @@ public class UstvariNalepko extends AppCompatActivity {
             finish();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Napaka pri shranjevanju datoteke", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_pri_shranjevanju_datoteke, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -259,7 +255,7 @@ public class UstvariNalepko extends AppCompatActivity {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Napaka pri nalaganju slike", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.napaka_pri_generiranju_nalepke, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -298,11 +294,11 @@ public class UstvariNalepko extends AppCompatActivity {
     public void exportajNalepko() {
         Bitmap bitmap = drawingView.getFinalBitmap();
         if (bitmap == null) {
-            Toast.makeText(this, "Napaka pri generiranju nalepke", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_pri_generiranju_nalepke, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String imeDatoteke = "Artly_nalepka_" + System.currentTimeMillis() + ".png";
+        String imeDatoteke = getString(R.string.artly_nalepka) + System.currentTimeMillis() + R.string.koncnica_png;
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
@@ -325,10 +321,10 @@ public class UstvariNalepko extends AppCompatActivity {
                     getContentResolver().update(uri, values, null, null);
                 }
 
-                Toast.makeText(this, "Nalepka uspešno izvožena v galerijo (Pictures/Artly)!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.uspeh_shranjena_nalepka, Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Napaka pri izvozu nalepke", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.napaka_izvoz_nalepke, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -343,13 +339,5 @@ public class UstvariNalepko extends AppCompatActivity {
         }
     }
 
-    private void setupColorClick(View popupView, int viewId, int color, PopupWindow popupWindow) {
-        View colorView = popupView.findViewById(viewId);
-        if (colorView != null) {
-            colorView.setOnClickListener(v -> {
-                drawingView.setPencilColor(color);
-                popupWindow.dismiss();
-            });
-        }
-    }
+
 }

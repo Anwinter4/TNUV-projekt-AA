@@ -28,7 +28,7 @@ import java.util.List;
 public class DrawingView extends View {
 
     private Paint paint;
-    private Paint selectionPaint; // Čopič za okvirček izbire
+    private Paint selectionPaint;
     private Path path;
     private Canvas canvas;
     private Bitmap drawingBitmap;
@@ -70,7 +70,6 @@ public class DrawingView extends View {
         paint.setStrokeJoin(Paint.Join.ROUND);
         path = new Path();
 
-        // Nastavitev čopiča za okvirček izbrane nalepke
         selectionPaint = new Paint();
         selectionPaint.setColor(Color.parseColor("#C06084"));
         selectionPaint.setStyle(Paint.Style.STROKE);
@@ -247,7 +246,7 @@ public class DrawingView extends View {
                 float deltaAngle = angle - lastRotationAngle;
                 izbranElement.matrix.postRotate(deltaAngle, getMidX(event), getMidY(event));
                 lastRotationAngle = angle;
-                rebuildEverything(); // Osvežimo bitmap ob rotaciji
+                rebuildEverything();
             }
             invalidate();
             return true;
@@ -263,7 +262,6 @@ public class DrawingView extends View {
                     if (elementi.get(i).contains(x, y)) {
                         najdenElement = elementi.get(i);
                         startMatrix.set(najdenElement.matrix);
-                        // Premaknemo dejanje nalepke na vrh v undoStacku (Z-order)
                         moveElementActionToFront(najdenElement);
                         rebuildEverything();
                         isDrawingEnabled = false;
@@ -284,7 +282,7 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_MOVE:
                 if (izbranElement != null && !isDrawingEnabled) {
                     izbranElement.matrix.postTranslate(x - lastX, y - lastY);
-                    rebuildEverything(); // Osvežimo bitmap ob premikanju
+                    rebuildEverything();
                 } else if (isDrawingEnabled) {
                     path.quadTo(lastX, lastY, (x + lastX) / 2, (y + lastY) / 2);
                     currentStrokePoints.add(x);
@@ -402,9 +400,6 @@ public class DrawingView extends View {
         }
     }
 
-    public void addSvgElement(int resId) {
-        addSvgElementWithId(resId, getResources().getResourceEntryName(resId));
-    }
 
     public Bitmap getFinalBitmap() {
         if (getWidth() <= 0 || getHeight() <= 0) return null;
@@ -423,7 +418,6 @@ public class DrawingView extends View {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
 
-        // Tu prav tako ne rišemo ločeno, saj je že v drawingBitmap
         return result;
     }
 
@@ -500,7 +494,7 @@ public class DrawingView extends View {
         @Override
         public void perform(Canvas c, List<SlikovniElement> e) {
             e.add(element);
-            element.draw(c); // Narišemo nalepko neposredno v bitmap
+            element.draw(c);
         }
 
         @Override
@@ -565,8 +559,8 @@ public class DrawingView extends View {
             c.drawPath(framePath, p);
 
             p.setStyle(Paint.Style.FILL);
-            c.drawCircle(pts[0], pts[1], 15f, p); // Zgoraj levo
-            c.drawCircle(pts[4], pts[5], 15f, p); // Spodaj desno
+            c.drawCircle(pts[0], pts[1], 15f, p);
+            c.drawCircle(pts[4], pts[5], 15f, p);
             p.setStyle(Paint.Style.STROKE);
 
         }

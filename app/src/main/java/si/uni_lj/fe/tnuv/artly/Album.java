@@ -29,6 +29,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -66,7 +68,6 @@ public class Album extends AppCompatActivity {
 
     private void osveziAlbum() {
         File directory = new File(getFilesDir(), "album");
-        // Prikažemo le .png datoteke
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
         List<File> listSlik = new ArrayList<>();
 
@@ -121,10 +122,10 @@ public class Album extends AppCompatActivity {
         });
 
         btnIzbrisiSliko.setOnClickListener(v -> {
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setTitle("Izbriši sliko")
-                    .setMessage("Ali ste prepričani, da želite trajno izbrisati to sliko?")
-                    .setPositiveButton("OK", (dialogInterface, i) -> {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.izbrisi_sliko)
+                    .setMessage(R.string.preveri_pred_izbrisom_slike)
+                    .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                         // Izbriši PNG
                         boolean deletedPng = file.delete();
                         
@@ -136,14 +137,14 @@ public class Album extends AppCompatActivity {
                         }
 
                         if (deletedPng) {
-                            Toast.makeText(Album.this, "Slika izbrisana", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(Album.this, R.string.slika_izbrisana, Toast.LENGTH_SHORT).show();
                             osveziAlbum();
                             dialog.dismiss();
                         } else {
-                            Toast.makeText(Album.this, "Napaka pri brisanju slike", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(Album.this, R.string.napaka_brisanje_slike, Toast.LENGTH_SHORT).show();
                         }
                     })
-                    .setNegativeButton("Prekliči", null)
+                    .setNegativeButton(R.string.preklici, null)
                     .show();
         });
 
@@ -154,11 +155,11 @@ public class Album extends AppCompatActivity {
 
     public void exportajSliko(Bitmap bitmap, String imeSlike) {
         if (bitmap == null) {
-            Toast.makeText(this, "Napaka: slika ni naložena", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.napaka_nalaganje_slike, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String imeDatoteke = (imeSlike == null || imeSlike.isEmpty()) ? "Artly_izvoz" : imeSlike;
+        String imeDatoteke = (imeSlike == null || imeSlike.isEmpty()) ? getString(R.string.artly_izvoz) : imeSlike;
         imeDatoteke += "_" + System.currentTimeMillis() + ".png";
 
         ContentValues values = new ContentValues();
@@ -180,10 +181,10 @@ public class Album extends AppCompatActivity {
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
                     getContentResolver().update(uri, values, null, null);
                 }
-                Toast.makeText(this, "Slika uspešno izvožena v album Artly!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.uspesen_izvoz_slike, Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Napaka pri izvozu slike", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.neuspesen_izvoz_slike, Toast.LENGTH_SHORT).show();
             }
         }
     }

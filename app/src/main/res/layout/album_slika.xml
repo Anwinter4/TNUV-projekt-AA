@@ -24,7 +24,7 @@
             android:layout_margin="8dp"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
-            android:contentDescription="Element"
+            android:contentDescription="@string/element"
             android:background="@color/white"/>
         <TextView
             android:id="@+id/naslovSlike"
@@ -34,7 +34,7 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginBottom="10dp"
-            android:text="Ime"
+            android:text="@string/ime"
             android:textSize="20sp"
             android:textStyle="bold"/>
 
