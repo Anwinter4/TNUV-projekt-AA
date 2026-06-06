@@ -313,28 +313,27 @@ public class UstvariSliko extends AppCompatActivity {
             directory.mkdirs();
         }
 
-        File file = new File(directory, imeSlike + R.string.koncnica_png);
+        File file = new File(directory, imeSlike + ".png");
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, R.string.napaka_shrani_png, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,R.string.napaka_shrani_png, Toast.LENGTH_SHORT).show();
             return;
         }
 
         DrawingState state = drawingView.getState();
         String json = new Gson().toJson(state);
-        File stateFile = new File(directory, imeSlike + R.string.koncnica_json);
+        File stateFile = new File(directory, imeSlike + ".json");
         try (FileWriter writer = new FileWriter(stateFile)) {
             writer.write(json);
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, R.string.napaka_shrani_stanje, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,R.string.napaka_shrani_stanje, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(this, getString(R.string.slika_imeSlike) + imeSlike + getString(R.string.imeSlike_shranjena), Toast.LENGTH_SHORT).show();
-        vnosnoPolje.setText("");
+        Toast.makeText(this, getString(R.string.slika_imeSlike) + imeSlike + getString(R.string.imeSlike_shranjena), Toast.LENGTH_SHORT).show();        vnosnoPolje.setText("");
         drawingView.clearAll();
         finish();
     }
