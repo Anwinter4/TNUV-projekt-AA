@@ -18,11 +18,13 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.res.ColorStateList;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -159,59 +161,39 @@ public class UstvariSliko extends AppCompatActivity {
         });
 
         btnEraser.setOnClickListener(v -> {
-            drawingView.setEraserMode(true);
-            Toast.makeText(this, R.string.radirka_vklopljena, Toast.LENGTH_SHORT).show();
+            if (drawingView.isEraserMode()) {
+                drawingView.setDrawingEnabled(false);
+            } else {
+                drawingView.setEraserMode(true);
+                Toast.makeText(this, R.string.radirka_vklopljena, Toast.LENGTH_SHORT).show();
+            }
+            posodobiGumbe();
         });
 
-        btnPencil.setOnClickListener(v -> {
+        btnPencil.setOnClickListener(v -> {if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
+            // Če je pero že vklopljeno, ga ob navadnem kliku IZKLOPI
+            drawingView.setDrawingEnabled(false);
+            posodobiGumbe();
+        } else {
+            // Če pero ni vklopljeno, ga vklopi in odpri paleto
             drawingView.setEraserMode(false);
+            drawingView.setDrawingEnabled(true);
+            prikaziBarvnoPaleto();
+            posodobiGumbe();
+        }
+        });
 
-            View popupView = LayoutInflater.from(UstvariSliko.this).inflate(R.layout.top_defaults_view_color_picker_popup, null);
-            androidx.appcompat.app.AlertDialog dialog = new AlertDialog.Builder(UstvariSliko.this)
-                    .setView(popupView)
-                    .create();
-
-            ColorPickerView colorPickerView = popupView.findViewById(R.id.colorPickerView);
-            colorPickerView.setInitialColor(mDefaultColor);
-
-            View colorIndicator = popupView.findViewById(R.id.colorIndicator);
-            if (colorIndicator != null) {
-                colorIndicator.setBackgroundColor(mDefaultColor);
+        btnPencil.setOnLongClickListener(v -> {
+            if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
+                prikaziBarvnoPaleto();
+            } else {
+                // Če pero še ni vklopljeno, ga vklopi in odpri paleto
+                drawingView.setEraserMode(false);
+                drawingView.setDrawingEnabled(true);
+                prikaziBarvnoPaleto();
+                posodobiGumbe();
             }
-
-            colorPickerView.subscribe((color, fromUser, shouldPropagate) -> {
-                if (colorIndicator != null) {
-                    colorIndicator.setBackgroundColor(color);
-                }
-            });
-
-            TextView btnOk = popupView.findViewById(R.id.ok);
-            btnOk.setText(R.string.ok);
-            btnOk.setOnClickListener(view -> {
-                mDefaultColor = colorPickerView.getColor();
-                mColorPreview.setBackgroundColor(mDefaultColor);
-                drawingView.setPencilColor(mDefaultColor);
-                dialog.dismiss();
-            });
-
-            TextView btnCancel = popupView.findViewById(R.id.cancel);
-            btnCancel.setText(R.string.preklici);
-            btnCancel.setOnClickListener(view -> dialog.dismiss());
-
-            popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
-                drawingView.penSize1();
-                Toast.makeText(UstvariSliko.this, R.string.tanka_crta, Toast.LENGTH_SHORT).show();
-            });
-            popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
-                drawingView.penSize3();
-                Toast.makeText(UstvariSliko.this, R.string.navadna_crta, Toast.LENGTH_SHORT).show();
-            });
-            popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
-                drawingView.penSize5();
-                Toast.makeText(UstvariSliko.this, R.string.debela_crta, Toast.LENGTH_SHORT).show();
-            });
-
-            dialog.show();
+            return true; // true pomeni, da smo dogodek "porabili" in se navaden klik ne izvede
         });
 
         btnTrash.setOnClickListener(v -> {
@@ -266,6 +248,56 @@ public class UstvariSliko extends AppCompatActivity {
 
         posodobiGumbe();
     }
+
+    private void prikaziBarvnoPaleto() {
+        View popupView = LayoutInflater.from(UstvariSliko.this).inflate(R.layout.top_defaults_view_color_picker_popup, null);
+        AlertDialog dialog = new AlertDialog.Builder(UstvariSliko.this)
+                .setView(popupView)
+                .create();
+
+        ColorPickerView colorPickerView = popupView.findViewById(R.id.colorPickerView);
+        colorPickerView.setInitialColor(mDefaultColor);
+
+        View colorIndicator = popupView.findViewById(R.id.colorIndicator);
+        if (colorIndicator != null) {
+            colorIndicator.setBackgroundColor(mDefaultColor);
+        }
+
+        colorPickerView.subscribe((color, fromUser, shouldPropagate) -> {
+            if (colorIndicator != null) {
+                colorIndicator.setBackgroundColor(color);
+            }
+        });
+
+        TextView btnOk = popupView.findViewById(R.id.ok);
+        btnOk.setText(R.string.ok);
+        btnOk.setOnClickListener(view -> {
+            mDefaultColor = colorPickerView.getColor();
+            mColorPreview.setBackgroundColor(mDefaultColor);
+            drawingView.setPencilColor(mDefaultColor);
+            dialog.dismiss();
+        });
+
+        TextView btnCancel = popupView.findViewById(R.id.cancel);
+        btnCancel.setText(R.string.preklici);
+        btnCancel.setOnClickListener(view -> dialog.dismiss());
+
+        popupView.findViewById(R.id.btnSize1).setOnClickListener(view -> {
+            drawingView.penSize1();
+            Toast.makeText(UstvariSliko.this, R.string.tanka_crta, Toast.LENGTH_SHORT).show();
+        });
+        popupView.findViewById(R.id.btnSize3).setOnClickListener(view -> {
+            drawingView.penSize3();
+            Toast.makeText(UstvariSliko.this, R.string.navadna_crta, Toast.LENGTH_SHORT).show();
+        });
+        popupView.findViewById(R.id.btnSize5).setOnClickListener(view -> {
+            drawingView.penSize5();
+            Toast.makeText(UstvariSliko.this, R.string.debela_crta, Toast.LENGTH_SHORT).show();
+        });
+
+        dialog.show();
+    }
+
 
     private void naloziSamoSliko(String path) {
         Bitmap bitmap = BitmapFactory.decodeFile(path);
@@ -457,6 +489,23 @@ public class UstvariSliko extends AppCompatActivity {
 
 
     private void posodobiGumbe() {
+        int barvaAktivna = ContextCompat.getColor(this, R.color.temno_roza); // Tvoja barva iz colors.xml
+        int barvaNeaktivna = Color.TRANSPARENT; // Prosojno ozadje
+
+        // Gumb za svinčnik
+        if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
+            btnPencil.setBackgroundTintList(ColorStateList.valueOf(barvaAktivna));
+        } else {
+            btnPencil.setBackgroundTintList(ColorStateList.valueOf(barvaNeaktivna));
+        }
+
+        // Gumb za radirko
+        if (drawingView.isEraserMode()) {
+            btnEraser.setBackgroundTintList(ColorStateList.valueOf(barvaAktivna));
+        } else {
+            btnEraser.setBackgroundTintList(ColorStateList.valueOf(barvaNeaktivna));
+        }
+
         if (elementAdapter != null) {
             previousArrow.setEnabled(elementAdapter.imaPrejsnjoStran());
             previousArrow.setAlpha(elementAdapter.imaPrejsnjoStran() ? 1.0f : 0.5f);

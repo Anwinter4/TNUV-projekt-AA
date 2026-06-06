@@ -112,6 +112,9 @@ public class NalepkaView extends View {
         invalidate();
     }
 
+    public boolean isDrawingEnabled() { return isDrawingEnabled; }
+    public boolean isEraserMode() { return isEraserMode; }
+
     public void undo() {
         if (!undoStack.isEmpty()) {
             redoStack.add(undoStack.remove(undoStack.size() - 1));
@@ -212,6 +215,13 @@ public class NalepkaView extends View {
             canvas.drawColor(Color.TRANSPARENT);
         }
 
+        for (SlikovniElement el : elementi) {
+            el.draw(canvas);
+            if (el == izbranElement) {
+                el.drawSelectionFrame(canvas, selectionPaint);
+            }
+        }
+
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
@@ -251,14 +261,16 @@ public class NalepkaView extends View {
                 lastY = y;
 
                 SlikovniElement najdenElement = null;
-                for (int i = elementi.size() - 1; i >= 0; i--) {
-                    if (elementi.get(i).contains(x, y)) {
-                        najdenElement = elementi.get(i);
-                        startMatrix.set(najdenElement.matrix);
-                        moveElementActionToFront(najdenElement);
-                        rebuildEverything();
-                        isDrawingEnabled = false;
-                        break;
+                if (!isDrawingEnabled) {
+                    for (int i = elementi.size() - 1; i >= 0; i--) {
+                        if (elementi.get(i).contains(x, y)) {
+                            najdenElement = elementi.get(i);
+                            startMatrix.set(najdenElement.matrix);
+                            moveElementActionToFront(najdenElement);
+                            rebuildEverything();
+                            isDrawingEnabled = false;
+                            break;
+                        }
                     }
                 }
 
@@ -336,7 +348,7 @@ public class NalepkaView extends View {
         if (bitmap != null) {
             Drawable d = new BitmapDrawable(getResources(), bitmap);
             float offset = elementi.size() * 60f;
-            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450);
+            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450, null);
             undoStack.add(new ElementAction(el));
             redoStack.clear();
             rebuildEverything();
@@ -346,11 +358,33 @@ public class NalepkaView extends View {
         }
     }
 
-    public void addSvgElement(int resId) {
+    public void addElement(String identifier) {
+        if (identifier.startsWith("/")) {
+            Bitmap b = BitmapFactory.decodeFile(identifier);
+            if (b != null) {
+                Drawable d = new BitmapDrawable(getResources(), b);
+                float offset = elementi.size() * 60f;
+                SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450, identifier);
+                undoStack.add(new ElementAction(el));
+                redoStack.clear();
+                rebuildEverything();
+                setDrawingEnabled(false);
+                izbranElement = el;
+                notifyStateChanged();
+            }
+        } else {
+            int resId = getContext().getResources().getIdentifier(identifier, "drawable", getContext().getPackageName());
+            if (resId != 0) {
+                addSvgElementWithId(resId, identifier);
+            }
+        }
+    }
+
+    private void addSvgElementWithId(int resId, String identifier) {
         Drawable d = ContextCompat.getDrawable(getContext(), resId);
         if (d != null) {
             float offset = elementi.size() * 60f;
-            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450);
+            SlikovniElement el = new SlikovniElement(d, 150 + offset, 150 + offset, 450, identifier);
             undoStack.add(new ElementAction(el));
             redoStack.clear();
             rebuildEverything();
@@ -358,6 +392,8 @@ public class NalepkaView extends View {
             notifyStateChanged();
         }
     }
+
+
 
 
     private interface Action {
@@ -375,7 +411,7 @@ public class NalepkaView extends View {
         ElementAction(SlikovniElement el) { this.element = el; }
         public void perform(Canvas c, List<SlikovniElement> e) {
             e.add(element);
-            element.draw(c);
+            //element.draw(c);
         }
     }
 
@@ -389,9 +425,11 @@ public class NalepkaView extends View {
         Drawable drawable;
         Matrix matrix = new Matrix();
         int width, height;
+        String identifier;
 
-        SlikovniElement(Drawable d, float x, float y, float w) {
+        SlikovniElement(Drawable d, float x, float y, float w, String identifier) {
             this.drawable = d;
+            this.identifier = identifier;
             this.width = d.getIntrinsicWidth();
             this.height = d.getIntrinsicHeight();
             float s = w / width;
@@ -452,6 +490,10 @@ public class NalepkaView extends View {
         Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(result);
         canvas.drawColor(Color.TRANSPARENT);
+        for (SlikovniElement el : elementi) {
+            el.draw(canvas);
+        }
+
         if (drawingBitmap != null) {
             canvas.drawBitmap(drawingBitmap, 0, 0, null);
         }

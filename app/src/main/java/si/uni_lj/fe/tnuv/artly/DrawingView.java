@@ -115,6 +115,9 @@ public class DrawingView extends View {
         invalidate();
     }
 
+    public boolean isDrawingEnabled() { return isDrawingEnabled; }
+    public boolean isEraserMode() { return isEraserMode; }
+
     public void undo() {
         if (!undoStack.isEmpty()) {
             redoStack.add(undoStack.remove(undoStack.size() - 1));
@@ -258,14 +261,16 @@ public class DrawingView extends View {
                 lastY = y;
 
                 SlikovniElement najdenElement = null;
-                for (int i = elementi.size() - 1; i >= 0; i--) {
-                    if (elementi.get(i).contains(x, y)) {
-                        najdenElement = elementi.get(i);
-                        startMatrix.set(najdenElement.matrix);
-                        moveElementActionToFront(najdenElement);
-                        rebuildEverything();
-                        isDrawingEnabled = false;
-                        break;
+                if (!isDrawingEnabled) {
+                    for (int i = elementi.size() - 1; i >= 0; i--) {
+                        if (elementi.get(i).contains(x, y)) {
+                            najdenElement = elementi.get(i);
+                            startMatrix.set(najdenElement.matrix);
+                            moveElementActionToFront(najdenElement);
+                            rebuildEverything();
+                            isDrawingEnabled = false;
+                            break;
+                        }
                     }
                 }
 
@@ -403,19 +408,28 @@ public class DrawingView extends View {
 
     public Bitmap getFinalBitmap() {
         if (getWidth() <= 0 || getHeight() <= 0) return null;
-        Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(result);
 
+        // Ustvarimo prazno bitmapo velikosti platna
+        Bitmap result = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas tempCanvas = new Canvas(result);
+
+        // 1. Narišemo ozadje (če obstaja, sicer prosojno)
         if (backgroundBitmap != null) {
-            srcRect.set(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
-            dstRect.set(0, 0, getWidth(), getHeight());
-            canvas.drawBitmap(backgroundBitmap, srcRect, dstRect, null);
+            Rect src = new Rect(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
+            Rect dst = new Rect(0, 0, getWidth(), getHeight());
+            tempCanvas.drawBitmap(backgroundBitmap, src, dst, null);
         } else {
-            canvas.drawColor(Color.WHITE);
+            tempCanvas.drawColor(Color.TRANSPARENT);
         }
 
+        // 2. KLJUČNO: Narišemo vse nalepke iz seznama
+        for (SlikovniElement el : elementi) {
+            el.draw(tempCanvas);
+        }
+
+        // 3. Narišemo plast z risbo (svinčnik/radirka)
         if (drawingBitmap != null) {
-            canvas.drawBitmap(drawingBitmap, 0, 0, null);
+            tempCanvas.drawBitmap(drawingBitmap, 0, 0, null);
         }
 
         return result;
@@ -494,7 +508,7 @@ public class DrawingView extends View {
         @Override
         public void perform(Canvas c, List<SlikovniElement> e) {
             e.add(element);
-            element.draw(c);
+            //element.draw(c);
         }
 
         @Override
