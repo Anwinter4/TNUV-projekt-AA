@@ -184,7 +184,7 @@ public class Album extends AppCompatActivity {
                 Toast.makeText(this, R.string.uspesen_izvoz_slike, Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, R.string.neuspesen_izvoz_slike, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.napaka_izvoz_slike, Toast.LENGTH_SHORT).show();
             }
         }
     }
