@@ -2,4 +2,15 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="temno_siva">#65565E</color>
+    <color name="temno_roza">#C06084</color>
+    <color name="svetlo_svetlo_roza">#FEF8FA</color>
+    <color name="svetlo_roza">#FDE4E9</color>
+    <color name="roza">#F5C7D4</color>
+    <color name="okvir_roza">#EFBDD0</color>
+    <color name="rjava">#44000000</color>
+    <color name="crte">#33FFFFFF</color>
+    <color name="zelena">#3DDC84</color>
+    <color name="ic_launcher_background">#FFE6EA</color>
+
 </resources>

@@ -6,19 +6,19 @@
         <item name="materialAlertDialogTheme">@style/CustomAlertDialog</item>
     </style>
 
-    <!-- Stil za tvoj popup -->
+    <!-- Stil za popup -->
     <style name="CustomAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- Eksplicitno nastavljena barva ozadja -->
-        <item name="colorSurface">#F5C7D4</item>
-        <item name="android:background">#F5C7D4</item>
-        <item name="backgroundTint">#F5C7D4</item>
+        <item name="colorSurface">@color/roza</item>
+        <item name="android:background">@color/roza</item>
+        <item name="backgroundTint">@color/roza</item>
 
         <!-- Zaobljeni robovi -->
         <item name="shapeAppearanceOverlay">@style/CustomDialogShape</item>
 
         <!-- Barve besedila in ikon na površini -->
-        <item name="colorOnSurface">#C06084</item>
-        <item name="colorPrimary">#C06084</item>
+        <item name="colorOnSurface">@color/temno_roza</item>
+        <item name="colorPrimary">@color/temno_roza</item>
 
         <!-- Stil za ODEBELJEN NASLOV s fiksno velikostjo -->
         <item name="materialAlertDialogTitleTextStyle">@style/CustomDialogTitle</item>
@@ -31,7 +31,7 @@
     <!-- Stil za naslov s fiksno velikostjo -->
     <style name="CustomDialogTitle" parent="MaterialAlertDialog.Material3.Title.Text">
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">#C06084</item>
+        <item name="android:textColor">@color/temno_roza</item>
         <item name="android:textSize">20sp</item> <!-- Fiksna velikost za vse dialoge -->
     </style>
 
@@ -44,7 +44,7 @@
     <style name="CustomDialogButton" parent="Widget.Material3.Button">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="backgroundTint">#C06084</item> <!-- Temnejša roza za gumb -->
+        <item name="backgroundTint">@color/temno_roza</item> <!-- Temnejša roza za gumb -->
         <item name="android:layout_margin">4dp</item>
         <item name="shapeAppearanceOverlay">@style/CustomDialogShape</item>
     </style>

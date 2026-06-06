@@ -68,7 +68,7 @@ public class NalepkaView extends View {
 
         // Nastavitev čopiča za okvirček izbrane nalepke
         selectionPaint = new Paint();
-        selectionPaint.setColor(Color.parseColor("#C06084"));
+        selectionPaint.setColor(ContextCompat.getColor(context, R.color.temno_roza));
         selectionPaint.setStyle(Paint.Style.STROKE);
         selectionPaint.setStrokeWidth(3f);
         selectionPaint.setPathEffect(new DashPathEffect(new float[]{10, 10}, 0));

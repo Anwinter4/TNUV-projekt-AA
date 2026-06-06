@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="#FDE4E9">
+    android:background="@color/svetlo_roza">
 
     <ImageView
         android:layout_width="wrap_content"
@@ -30,7 +30,7 @@
         android:background="@drawable/zacetni_button"
         android:drawableTop="@drawable/album"
         android:text="@string/gumb_album"
-        android:textColor="#C06084"
+        android:textColor="@color/temno_roza"
         app:backgroundTint="@null"
         app:layout_constraintEnd_toStartOf="@+id/gumbustvari"
         app:layout_constraintHorizontal_chainStyle="spread"
@@ -47,7 +47,7 @@
         android:background="@drawable/zacetni_button"
         android:drawableTop="@drawable/ustvari"
         android:text="@string/gumb_ustvari"
-        android:textColor="#C06084"
+        android:textColor="@color/temno_roza"
         app:backgroundTint="@null"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/gumbalbum"

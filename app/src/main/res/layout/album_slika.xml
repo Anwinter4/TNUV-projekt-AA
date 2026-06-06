@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:orientation="vertical"
-        android:background="#EFBDD0"
+        android:background="@color/okvir_roza"
         android:layout_margin="0dp"
         android:foreground="@drawable/pinkboarder">
 

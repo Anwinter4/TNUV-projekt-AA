@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/ustvariSliko"
-    android:background="#FEF8FA"
+    android:background="@color/svetlo_svetlo_roza"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#F5C7D4"
+        android:background="@color/roza"
         app:contentInsetStart="0dp"
         app:contentInsetLeft="0dp">
 
@@ -91,7 +91,7 @@
                 android:layout_height="match_parent"
                 android:paddingRight="200dp"
                 android:layout_gravity="center_vertical"
-                android:background="#FFFFFF" />
+                android:background="@color/white" />
         </FrameLayout>
 
         <LinearLayout
@@ -136,7 +136,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="#F5C7D4">
+        android:background="@color/roza">
 
         <ImageButton
             android:id="@+id/btnTrash"
@@ -197,7 +197,7 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp"
-        android:background="#F5C7D4">
+        android:background="@color/roza">
 
         <Button
             android:id="@+id/btnAlbum"
@@ -205,7 +205,7 @@
             android:layout_height="60dp"
             android:text="@string/gumb_album"
             android:textSize="20sp"
-            android:backgroundTint="#C06084"
+            android:backgroundTint="@color/temno_roza"
             android:layout_marginEnd="16dp" />
 
         <Button
@@ -214,6 +214,6 @@
             android:layout_height="60dp"
             android:text="@string/shrani"
             android:textSize="20sp"
-            android:backgroundTint="#C06084"/>
+            android:backgroundTint="@color/temno_roza"/>
     </LinearLayout>
 </LinearLayout>

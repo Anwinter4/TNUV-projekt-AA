@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp"
-    android:background="#F5C7D4">
+    android:background="@color/roza">
 
-    <TextView
+    <Button
         android:id="@+id/cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,11 +15,14 @@
         android:textSize="14sp"
         android:gravity="center"
         android:padding="8dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         android:foreground="?android:attr/selectableItemBackground"
+        android:backgroundTint="@color/temno_roza"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <TextView
+    <Button
         android:id="@+id/ok"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,7 +30,10 @@
         android:textSize="14sp"
         android:gravity="center"
         android:padding="8dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         android:foreground="?android:attr/selectableItemBackground"
+        android:backgroundTint="@color/temno_roza"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
