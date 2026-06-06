@@ -212,7 +212,7 @@ public class UstvariNalepko extends AppCompatActivity {
         }
 
         String uniqueName = UUID.randomUUID().toString().substring(0, 8);
-        String fileName = "element_13_" + uniqueName + R.string.koncnica_png;
+        String fileName = "element_13_" + uniqueName + ".png";
         
         File directory = new File(getFilesDir(), "custom_elements");
         if (!directory.exists()) {
