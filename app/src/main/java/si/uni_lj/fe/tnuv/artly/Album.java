@@ -126,11 +126,10 @@ public class Album extends AppCompatActivity {
                     .setTitle(R.string.izbrisi_sliko)
                     .setMessage(R.string.preveri_pred_izbrisom_slike)
                     .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
-                        // Izbriši PNG
                         boolean deletedPng = file.delete();
                         
-                        // Poskusi izbrisati še pripadajoči JSON
-                        String statePath = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".")) + ".json";
+                        // POPRAVEK: getString() za končnico .json
+                        String statePath = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".")) + getString(R.string.koncnica_json);
                         File stateFile = new File(statePath);
                         if (stateFile.exists()) {
                             stateFile.delete();
@@ -160,7 +159,8 @@ public class Album extends AppCompatActivity {
         }
 
         String imeDatoteke = (imeSlike == null || imeSlike.isEmpty()) ? getString(R.string.artly_izvoz) : imeSlike;
-        imeDatoteke += "_" + System.currentTimeMillis() + ".png";
+        // POPRAVEK: getString() za končnico .png
+        imeDatoteke += "_" + System.currentTimeMillis() + getString(R.string.koncnica_png);
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);

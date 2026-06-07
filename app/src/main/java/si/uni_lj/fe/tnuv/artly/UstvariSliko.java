@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import androidx.appcompat.app.AlertDialog;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,7 +23,6 @@ import android.content.res.ColorStateList;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -114,7 +114,7 @@ public class UstvariSliko extends AppCompatActivity {
             String path = intent.getStringExtra("imagePath");
             String name = intent.getStringExtra("imageName");
             if (path != null) {
-                String statePath = path.substring(0, path.lastIndexOf(".")) + R.string.koncnica_json;
+                String statePath = path.substring(0, path.lastIndexOf(".")) + getString(R.string.koncnica_json);
                 File stateFile = new File(statePath);
                 
                 if (stateFile.exists()) {
@@ -171,11 +171,9 @@ public class UstvariSliko extends AppCompatActivity {
         });
 
         btnPencil.setOnClickListener(v -> {if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
-            // Če je pero že vklopljeno, ga ob navadnem kliku IZKLOPI
             drawingView.setDrawingEnabled(false);
             posodobiGumbe();
         } else {
-            // Če pero ni vklopljeno, ga vklopi in odpri paleto
             drawingView.setEraserMode(false);
             drawingView.setDrawingEnabled(true);
             prikaziBarvnoPaleto();
@@ -187,13 +185,12 @@ public class UstvariSliko extends AppCompatActivity {
             if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
                 prikaziBarvnoPaleto();
             } else {
-                // Če pero še ni vklopljeno, ga vklopi in odpri paleto
                 drawingView.setEraserMode(false);
                 drawingView.setDrawingEnabled(true);
                 prikaziBarvnoPaleto();
                 posodobiGumbe();
             }
-            return true; // true pomeni, da smo dogodek "porabili" in se navaden klik ne izvede
+            return true;
         });
 
         btnTrash.setOnClickListener(v -> {
@@ -381,9 +378,9 @@ public class UstvariSliko extends AppCompatActivity {
         String imeDatoteke;
 
         if (vnesenoIme.isEmpty()) {
-            imeDatoteke = getString(R.string.artly_slika) + System.currentTimeMillis() + R.string.koncnica_png;
+            imeDatoteke = getString(R.string.artly_slika) + System.currentTimeMillis() + getString(R.string.koncnica_png);
         } else {
-            imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + R.string.koncnica_png;
+            imeDatoteke = vnesenoIme + "_" + System.currentTimeMillis() + getString(R.string.koncnica_png);
         }
 
         ContentValues values = new ContentValues();
@@ -489,8 +486,8 @@ public class UstvariSliko extends AppCompatActivity {
 
 
     private void posodobiGumbe() {
-        int barvaAktivna = ContextCompat.getColor(this, R.color.temno_roza); // Tvoja barva iz colors.xml
-        int barvaNeaktivna = Color.TRANSPARENT; // Prosojno ozadje
+        int barvaAktivna = ContextCompat.getColor(this, R.color.temno_roza);
+        int barvaNeaktivna = Color.TRANSPARENT;
 
         // Gumb za svinčnik
         if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {

@@ -116,17 +116,14 @@ public class UstvariNalepko extends AppCompatActivity {
 
         btnEraser.setOnClickListener(v -> {
             if (drawingView.isEraserMode()) {
-                // Če je že vklopljena, jo IZKLOPI
                 drawingView.setDrawingEnabled(false);
             } else {
-                // Sicer jo vklopi
                 drawingView.setEraserMode(true);
                 Toast.makeText(this, R.string.radirka_vklopljena, Toast.LENGTH_SHORT).show();
             }
             posodobiGumbe();
         });
 
-        // POSODOBLJEN GUMB ZA KOŠ
         btnTrash.setOnClickListener(v -> {
             if (drawingView.hasSelection()) {
                 drawingView.deleteSelected();
@@ -154,11 +151,9 @@ public class UstvariNalepko extends AppCompatActivity {
         drawingView.greyRedo(btnRedo);
 
         btnPencil.setOnClickListener(v -> {if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
-            // Če je pero že vklopljeno, ga ob navadnem kliku IZKLOPI
             drawingView.setDrawingEnabled(false);
             posodobiGumbe();
         } else {
-            // Če pero ni vklopljeno, ga vklopi in odpri paleto
             drawingView.setEraserMode(false);
             drawingView.setDrawingEnabled(true);
             prikaziBarvnoPaleto();
@@ -170,13 +165,12 @@ public class UstvariNalepko extends AppCompatActivity {
             if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {
                 prikaziBarvnoPaleto();
             } else {
-                // Če pero še ni vklopljeno, ga vklopi in odpri paleto
                 drawingView.setEraserMode(false);
                 drawingView.setDrawingEnabled(true);
                 prikaziBarvnoPaleto();
                 posodobiGumbe();
             }
-            return true; // true pomeni, da smo dogodek "porabili" in se navaden klik ne izvede
+            return true;
         });
 
 
@@ -335,7 +329,7 @@ public class UstvariNalepko extends AppCompatActivity {
             return;
         }
 
-        String imeDatoteke = getString(R.string.artly_nalepka) + System.currentTimeMillis() + R.string.koncnica_png;
+        String imeDatoteke = getString(R.string.artly_nalepka) + System.currentTimeMillis() + getString(R.string.koncnica_png);
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.DISPLAY_NAME, imeDatoteke);
@@ -368,8 +362,8 @@ public class UstvariNalepko extends AppCompatActivity {
 
 
     private void posodobiGumbe() {
-        int barvaAktivna = ContextCompat.getColor(this, R.color.temno_roza); // Tvoja barva iz colors.xml
-        int barvaNeaktivna = Color.TRANSPARENT; // Prosojno ozadje
+        int barvaAktivna = ContextCompat.getColor(this, R.color.temno_roza);
+        int barvaNeaktivna = Color.TRANSPARENT;
 
         // Gumb za svinčnik
         if (drawingView.isDrawingEnabled() && !drawingView.isEraserMode()) {

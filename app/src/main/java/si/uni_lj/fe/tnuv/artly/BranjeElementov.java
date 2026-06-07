@@ -35,7 +35,6 @@ public class BranjeElementov {
             }
         }
 
-        //Log.d("Imena elementov: ", elementNames.toString());
         return elementNames;
     }
 }
